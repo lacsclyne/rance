@@ -23,4 +23,6 @@ implementation issues.
 
 The data-only content foundation lives under `data/`. It provides JSON schemas
 and minimal fixture collections for later Godot import, editor tooling, and
-gameplay prototype tasks. No runtime data loader is implemented yet.
+gameplay prototype tasks. Runtime consumers should load it through
+`src/data/content_data_loader.gd` so they receive validated dictionaries and ID
+indexes instead of parsing raw files directly.

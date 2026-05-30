@@ -22,6 +22,28 @@ stable IDs used by gameplay modules.
   persistence.
 - Gameplay modules should depend on validated data contracts rather than parsing
   raw files themselves.
+- `ContentDataLoader` reads JSON from `res://data/`, validates the first content
+  contract, and returns raw dictionaries plus ID indexes for consumers.
+- Loader validation covers required fields, ID uniqueness, cross-table
+  references, enum values, and basic numeric ranges. It does not interpret
+  declarative effect, quest, progression, or reward behavior.
+
+## Developer Validation
+
+Use the Godot headless entrypoint when Godot is installed:
+
+```sh
+godot --headless --path . --script tools/dev/validate_content_data.gd
+```
+
+Use the Python fallback in environments without Godot:
+
+```sh
+python tools/dev/validate_content_data.py
+```
+
+Use `-- --data-root <path>` with the Godot script or `--data-root <path>` with
+the Python fallback for validating copied fixture data.
 
 ## First Reads for Follow-up Issues
 
