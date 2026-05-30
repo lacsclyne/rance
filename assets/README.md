@@ -9,6 +9,10 @@ Asset paths are reserved in [asset_manifest.json](asset_manifest.json). The
 manifest is allowed to contain placeholders: a missing file only fails
 validation when its entry sets `required` to `true`.
 
+For the end-to-end brief, intake, approval, replacement, and Godot lookup
+workflow, see
+[docs/content-authoring/art-intake-workflow.md](../docs/content-authoring/art-intake-workflow.md).
+
 Each manifest entry uses these fields:
 
 - `id`: stable asset ID in `<category>.<name>` format.
@@ -20,6 +24,10 @@ Each manifest entry uses these fields:
 - `status`: `placeholder`, `draft`, or `final`.
 - `source_id`: optional content ID the asset represents, such as
   `card.spark_bolt` or `character.iris`.
+
+Use `final` for approved artwork. Replacement work keeps the same manifest ID
+and path while it is reviewed as `draft`, then returns to `final` after
+approval; do not add `approved` or `replaced` as manifest status strings.
 
 Validate the manifest with:
 

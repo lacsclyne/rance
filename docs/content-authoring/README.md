@@ -4,6 +4,10 @@ Use this guide when adding or revising JSON content under `data/`. The starter
 templates in [templates/](templates/) mirror the current data layout and are
 generic placeholders, not final character, story, ending, or balance decisions.
 
+Use [art-intake-workflow.md](art-intake-workflow.md) when a content row needs a
+generated or commissioned card illustration, portrait, icon, background, or UI
+image tracked through the asset manifest.
+
 ## Template Index
 
 | Content type | Data file | Schema | Template |
