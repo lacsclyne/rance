@@ -16,6 +16,14 @@ entry points once a test framework is selected.
 - Future test runner scene: `res://tests/test_runner.tscn`
 - Future fixtures: `res://tests/fixtures/`
 
+## Current Headless Checks
+
+```sh
+godot --headless --path . --script tests/test_combat_minimal.gd
+godot --headless --path . --script tests/test_quest_graph_minimal.gd
+godot --headless --path . --script tests/test_campaign_fronts_minimal.gd
+```
+
 ## Interface Boundaries
 
 - Tests may exercise every module, but production modules must not depend on

@@ -10,6 +10,12 @@ campaign-level strategic outcomes.
 - `src/strategy_map/`
 - Future content data under `data/factions/` and `data/strategy_map/`
 
+## Current Runtime Entry Points
+
+- `src/strategy_map/campaign_state.gd`
+- `src/strategy_map/front_state.gd`
+- `src/strategy_map/strategic_action.gd`
+
 ## Key Scene and Resource Paths
 
 - Future map scenes: `res://scenes/strategy_map/`
