@@ -1,0 +1,13 @@
+name: Smoke Test
+description: Record a smoke test result.
+title: "Smoke test result"
+labels:
+  - smoke-test
+body:
+  - type: textarea
+    id: smoke-result
+    attributes:
+      label: Smoke result
+      description: Describe the smoke test result.
+    validations:
+      required: true
