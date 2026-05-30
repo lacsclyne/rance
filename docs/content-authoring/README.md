@@ -8,6 +8,10 @@ Use [art-intake-workflow.md](art-intake-workflow.md) when a content row needs a
 generated or commissioned card illustration, portrait, icon, background, or UI
 image tracked through the asset manifest.
 
+For pre-production faction, character, and two-version card planning, use the
+[design packet templates](design-packets/README.md) before writing production
+JSON.
+
 ## Template Index
 
 | Content type | Data file | Schema | Template |
