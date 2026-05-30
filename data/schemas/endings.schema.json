@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lacsclyne.local/schemas/endings.schema.json",
+  "title": "Ending collection",
+  "type": "object",
+  "required": ["version", "endings"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "endings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "campaign_id",
+          "priority",
+          "requirements",
+          "related_faction_ids",
+          "related_character_ids",
+          "discovery",
+          "presentation"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/contentId" },
+          "name": { "type": "string", "minLength": 1 },
+          "campaign_id": { "$ref": "#/$defs/contentId" },
+          "priority": { "type": "integer", "minimum": 0 },
+          "exclusive_group": { "type": "string", "minLength": 1 },
+          "requirements": { "$ref": "#/$defs/requirements" },
+          "related_faction_ids": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/contentId" },
+            "uniqueItems": true
+          },
+          "related_character_ids": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/contentId" },
+            "uniqueItems": true
+          },
+          "discovery": { "$ref": "#/$defs/discovery" },
+          "presentation": { "$ref": "#/$defs/presentation" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "flagId": {
+      "type": "string",
+      "pattern": "^flag\\.[a-z][a-z0-9_]*$"
+    },
+    "flagArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/flagId" },
+      "uniqueItems": true
+    },
+    "questIdArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contentId" },
+      "uniqueItems": true
+    },
+    "progressionIdArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contentId" },
+      "uniqueItems": true
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["all", "any"]
+        },
+        "completed_quest_ids": { "$ref": "#/$defs/questIdArray" },
+        "failed_quest_ids": { "$ref": "#/$defs/questIdArray" },
+        "required_progression_ids": { "$ref": "#/$defs/progressionIdArray" },
+        "blocked_progression_ids": { "$ref": "#/$defs/progressionIdArray" },
+        "required_flags": { "$ref": "#/$defs/flagArray" },
+        "blocked_flags": { "$ref": "#/$defs/flagArray" },
+        "character_state": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["character_id", "state"],
+            "additionalProperties": false,
+            "properties": {
+              "character_id": { "$ref": "#/$defs/contentId" },
+              "state": {
+                "type": "string",
+                "enum": ["alive", "dead", "available", "unavailable"]
+              }
+            }
+          }
+        },
+        "faction_state": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["faction_id"],
+            "additionalProperties": false,
+            "properties": {
+              "faction_id": { "$ref": "#/$defs/contentId" },
+              "state": {
+                "type": "string",
+                "enum": ["allied", "neutral", "hostile", "destroyed"]
+              },
+              "standing_at_least": { "type": "integer" },
+              "standing_at_most": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "set_flags": { "$ref": "#/$defs/flagArray" },
+        "carryover_progression_ids": { "$ref": "#/$defs/progressionIdArray" },
+        "notes": { "type": "string" }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "required": ["title", "body"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "subtitle": { "type": "string" },
+        "body": { "type": "string", "minLength": 1 },
+        "art_id": { "$ref": "#/$defs/contentId" },
+        "music_id": { "$ref": "#/$defs/contentId" }
+      }
+    }
+  }
+}

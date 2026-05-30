@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lacsclyne.local/schemas/events.schema.json",
+  "title": "Campaign event collection",
+  "type": "object",
+  "required": ["version", "events"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "campaign_id", "trigger", "presentation"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/contentId" },
+          "name": { "type": "string", "minLength": 1 },
+          "campaign_id": { "$ref": "#/$defs/contentId" },
+          "summary": { "type": "string" },
+          "trigger": { "$ref": "#/$defs/trigger" },
+          "effects": { "$ref": "#/$defs/eventEffects" },
+          "presentation": { "$ref": "#/$defs/presentation" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "flagId": {
+      "type": "string",
+      "pattern": "^flag\\.[a-z][a-z0-9_]*$"
+    },
+    "frontId": {
+      "type": "string",
+      "pattern": "^front\\.[a-z][a-z0-9_]*$"
+    },
+    "flagArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/flagId" },
+      "uniqueItems": true
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["all", "any"]
+        },
+        "turn": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "at": { "type": "integer", "minimum": 1 },
+            "at_least": { "type": "integer", "minimum": 1 },
+            "before": { "type": "integer", "minimum": 1 },
+            "deadline_turn": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "faction_state": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["faction_id"],
+            "additionalProperties": false,
+            "properties": {
+              "faction_id": { "$ref": "#/$defs/contentId" },
+              "state": {
+                "type": "string",
+                "enum": ["allied", "neutral", "hostile", "destroyed"]
+              },
+              "standing_at_least": { "type": "integer" },
+              "standing_at_most": { "type": "integer" }
+            }
+          }
+        },
+        "front_state": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["front_id"],
+            "additionalProperties": false,
+            "properties": {
+              "front_id": { "$ref": "#/$defs/frontId" },
+              "control": {
+                "type": "string",
+                "enum": ["ally", "contested", "enemy"]
+              },
+              "pressure_at_least": { "type": "integer", "minimum": 0 },
+              "pressure_at_most": { "type": "integer", "minimum": 0 },
+              "deadline_turn": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "quest_state": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["quest_id", "state"],
+            "additionalProperties": false,
+            "properties": {
+              "quest_id": { "$ref": "#/$defs/contentId" },
+              "state": {
+                "type": "string",
+                "enum": ["locked", "available", "active", "completed", "failed"]
+              }
+            }
+          }
+        },
+        "character_state": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["character_id", "state"],
+            "additionalProperties": false,
+            "properties": {
+              "character_id": { "$ref": "#/$defs/contentId" },
+              "state": {
+                "type": "string",
+                "enum": ["alive", "dead", "available", "unavailable"]
+              }
+            }
+          }
+        },
+        "required_flags": { "$ref": "#/$defs/flagArray" },
+        "blocked_flags": { "$ref": "#/$defs/flagArray" }
+      }
+    },
+    "eventEffects": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "set_flags": { "$ref": "#/$defs/flagArray" },
+        "clear_flags": { "$ref": "#/$defs/flagArray" },
+        "available_quest_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contentId" },
+          "uniqueItems": true
+        },
+        "unlock_progression_ids": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/contentId" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "required": ["title", "body"],
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "body": { "type": "string", "minLength": 1 },
+        "art_id": { "$ref": "#/$defs/contentId" },
+        "music_id": { "$ref": "#/$defs/contentId" }
+      }
+    }
+  }
+}

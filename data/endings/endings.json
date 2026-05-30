@@ -1,0 +1,55 @@
+{
+  "$schema": "../schemas/endings.schema.json",
+  "version": 1,
+  "endings": [
+    {
+      "id": "ending.prologue_road_held",
+      "name": "Road Held",
+      "campaign_id": "campaign.prologue",
+      "priority": 100,
+      "exclusive_group": "prologue_primary_outcome",
+      "requirements": {
+        "mode": "all",
+        "completed_quest_ids": [
+          "quest.secure_crossroad",
+          "quest.recover_relic"
+        ],
+        "required_progression_ids": ["progression.relic_recovered"],
+        "required_flags": ["flag.foundry_deadline_warning_seen"],
+        "blocked_flags": ["flag.prologue_route_lost"],
+        "character_state": [
+          {
+            "character_id": "character.iris",
+            "state": "alive"
+          }
+        ],
+        "faction_state": [
+          {
+            "faction_id": "faction.liberation_front",
+            "standing_at_least": 1
+          }
+        ]
+      },
+      "related_faction_ids": [
+        "faction.liberation_front",
+        "faction.iron_court"
+      ],
+      "related_character_ids": [
+        "character.iris",
+        "character.toma"
+      ],
+      "discovery": {
+        "set_flags": ["flag.ending_prologue_road_held_seen"],
+        "carryover_progression_ids": ["progression.relic_recovered"],
+        "notes": "Marks the prologue route as discovered for future run logic."
+      },
+      "presentation": {
+        "title": "Road Held",
+        "subtitle": "The patrol route remains open.",
+        "body": "The defenders buy enough time for the next campaign leg to begin.",
+        "art_id": "ending.road_held",
+        "music_id": "music.quiet_resolve"
+      }
+    }
+  ]
+}

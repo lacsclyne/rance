@@ -19,6 +19,8 @@ For new content authoring, start with the guide and starter templates in
 - `enemies/`: enemy definitions and action references.
 - `encounters/`: enemy wave and reward references.
 - `quests/`: quest objectives and rewards.
+- `events/`: campaign event trigger and effect fixtures.
+- `endings/`: ending requirement, ordering, discovery, and presentation fixtures.
 - `reward_pools/`: weighted reward options.
 - `progression/`: unlock nodes and gate references.
 
@@ -33,6 +35,8 @@ For new content authoring, start with the guide and starter templates in
 - Enemies: 4
 - Encounters: 3
 - Quests: 3
+- Campaign events: 1
+- Endings: 1
 - Reward pools: 2
 - Progression nodes: 4
 
@@ -47,9 +51,10 @@ For new content authoring, start with the guide and starter templates in
 - Status rows include runtime effect metadata (`effect_type`, `numeric_value`,
   `tick_timing`, and `expire_timing`) consumed by the first combat resolver.
 - Card `effects`, skill triggers, status stack rules, enemy notes, encounter
-  intent patterns, encounter waves, quest objectives, reward pool entries, and
-  progression unlocks are declarative descriptors only. Later runtime issues can
-  interpret them without changing the IDs.
+  intent patterns, encounter waves, quest objectives, campaign event triggers,
+  ending requirements, reward pool entries, and progression unlocks are
+  declarative descriptors only. Later runtime issues can interpret them without
+  changing the IDs.
 
 Examples:
 

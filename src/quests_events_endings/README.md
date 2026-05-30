@@ -4,6 +4,11 @@ Owns quest graph runtime state, event routing, branch choices, chest reward
 selection, rest nodes, combat-node handoff, and result settlement summaries. See
 `docs/modules/quests_events_endings.md`.
 
+Content fixtures now include minimal `data/events/events.json` and
+`data/endings/endings.json` rows. They are schema-validated and indexed by
+`ContentDataLoader`, but no runtime event router or ending resolver consumes
+them yet.
+
 Current runtime classes:
 
 - `QuestDefinition`: quest graph definition, including a compatibility path
