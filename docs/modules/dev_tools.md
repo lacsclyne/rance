@@ -25,6 +25,11 @@ and local validation commands.
 - Do not introduce third-party plugins or large binaries without a dedicated
   issue.
 
+## Current Validation Commands
+
+- `python tools/dev/validate_content_data.py`
+- `python tools/dev/validate_asset_manifest.py`
+
 ## First Reads for Follow-up Issues
 
 - `docs/project-overview.md`

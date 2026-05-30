@@ -23,3 +23,15 @@ python tools/dev/validate_content_data.py
 Both commands report failures with file, content ID, field, and reason. Use
 `-- --data-root <path>` with the Godot script or `--data-root <path>` with the
 Python script to validate a copied or generated data directory.
+
+## Asset Manifest Validation
+
+Validate reserved art and UI asset paths with:
+
+```sh
+python tools/dev/validate_asset_manifest.py
+```
+
+The validator checks `assets/asset_manifest.json` for required fields,
+duplicate IDs, category/path naming consistency, and file existence only for
+entries marked `required: true`. Placeholder entries may point to future files.
