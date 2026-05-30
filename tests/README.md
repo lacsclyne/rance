@@ -7,6 +7,12 @@ Current headless checks:
 ```sh
 godot --headless --path . --script tests/test_combat_minimal.gd
 godot --headless --path . --script tests/test_quest_graph_minimal.gd
+godot --headless --path . --script tests/e2e/test_headless_mvp_loop.gd
 ```
+
+The E2E smoke test loads the sample content data, builds a minimal collection
+and formation, drives a quest battle into a reward choice, and verifies the
+settlement summary. It intentionally avoids UI scenes, art assets, campaign-map
+front APIs, and balance assertions beyond deterministic fixture outcomes.
 
 See `docs/modules/tests.md`.
