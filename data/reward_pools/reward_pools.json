@@ -13,6 +13,18 @@
         { "kind": "skill", "content_id": "skill.field_medicine", "weight": 1 },
         { "kind": "skill", "content_id": "skill.arcane_study", "weight": 1 }
       ]
+    },
+    {
+      "id": "reward_pool.foundry",
+      "name": "Foundry Rewards",
+      "entries": [
+        { "kind": "card", "content_id": "card.sunder", "weight": 3 },
+        { "kind": "card", "content_id": "card.rally_banner", "weight": 2 },
+        { "kind": "card", "content_id": "card.frost_lance", "weight": 2 },
+        { "kind": "card", "content_id": "card.quick_step", "weight": 1 },
+        { "kind": "skill", "content_id": "skill.cursebreaker", "weight": 1 },
+        { "kind": "skill", "content_id": "skill.surge_control", "weight": 1 }
+      ]
     }
   ]
 }

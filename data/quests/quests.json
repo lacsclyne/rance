@@ -14,9 +14,17 @@
       "id": "quest.recover_relic",
       "name": "Recover the Shrine Relic",
       "objective": "Defeat the shrine raiders and recover the sealed relic.",
-      "encounter_ids": ["encounter.burned_shrine", "encounter.foundry_gate"],
+      "encounter_ids": ["encounter.burned_shrine"],
       "reward_pool_id": "reward_pool.prologue",
       "progression_reward_id": "progression.crossroad_secure"
+    },
+    {
+      "id": "quest.close_foundry",
+      "name": "Close the Foundry Gate",
+      "objective": "Break the gate guard before the raiders can regroup.",
+      "encounter_ids": ["encounter.foundry_gate"],
+      "reward_pool_id": "reward_pool.foundry",
+      "progression_reward_id": "progression.relic_recovered"
     }
   ]
 }

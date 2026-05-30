@@ -5,7 +5,7 @@
     {
       "id": "campaign.prologue",
       "name": "Prologue: Ash Road",
-      "summary": "A short patrol route that introduces one party, three battles, two quests, and the first unlock gates.",
+      "summary": "A short patrol route that introduces one party, three battles, three quests, and the first unlock gates.",
       "entry_character_ids": ["character.iris", "character.toma"],
       "acts": [
         {
@@ -19,7 +19,8 @@
           ],
           "quest_ids": [
             "quest.secure_crossroad",
-            "quest.recover_relic"
+            "quest.recover_relic",
+            "quest.close_foundry"
           ]
         }
       ]

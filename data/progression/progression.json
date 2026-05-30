@@ -32,7 +32,18 @@
         { "kind": "character", "content_id": "character.bram" },
         { "kind": "skill", "content_id": "skill.command_aura" },
         { "kind": "encounter", "content_id": "encounter.foundry_gate" },
-        { "kind": "quest", "content_id": "quest.recover_relic" }
+        { "kind": "quest", "content_id": "quest.recover_relic" },
+        { "kind": "quest", "content_id": "quest.close_foundry" }
+      ]
+    },
+    {
+      "id": "progression.relic_recovered",
+      "name": "Relic Recovered",
+      "requires": ["progression.crossroad_secure"],
+      "unlocks": [
+        { "kind": "card", "content_id": "card.frost_lance" },
+        { "kind": "card", "content_id": "card.sunder" },
+        { "kind": "skill", "content_id": "skill.cursebreaker" }
       ]
     }
   ]

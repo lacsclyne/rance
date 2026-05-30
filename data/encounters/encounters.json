@@ -31,7 +31,7 @@
         { "enemy_id": "enemy.iron_hound", "count": 2 },
         { "enemy_id": "enemy.ember_acolyte", "count": 1 }
       ],
-      "reward_pool_id": "reward_pool.prologue",
+      "reward_pool_id": "reward_pool.foundry",
       "environment": "outer_foundry"
     }
   ]

@@ -1,0 +1,14 @@
+; Engine configuration file.
+; Prefer editing this file through the Godot editor when changing project settings.
+
+config_version=5
+
+[application]
+
+config/name="rance"
+run/main_scene="res://scenes/boot/main.tscn"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"

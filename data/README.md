@@ -1,7 +1,8 @@
 # Content Data
 
-This directory contains data-only fixtures for the first 2D RPG card battle
-prototype pass. It does not include Godot scenes, scripts, UI, or combat logic.
+This directory contains versioned, data-only fixtures for the first content
+contract pass. It does not include Godot scenes, scripts, UI, save code, combat
+logic, or runtime loaders.
 
 ## Layout
 
@@ -28,14 +29,22 @@ prototype pass. It does not include Godot scenes, scripts, UI, or combat logic.
 - Statuses: 6
 - Enemies: 3
 - Encounters: 3
-- Quests: 2
-- Reward pools: 1
-- Progression nodes: 3
+- Quests: 3
+- Reward pools: 2
+- Progression nodes: 4
 
-## ID Rules
+## Field Conventions
 
-IDs use the format `<kind>.<name>` with lowercase ASCII letters, numbers, and
-underscores. References must point to IDs in the matching fixture collection.
+- IDs use the format `<kind>.<name>` with lowercase ASCII letters, numbers, and
+  underscores.
+- Each collection file has a top-level `version` integer and one plural array
+  named for the collection, such as `cards`, `characters`, or `reward_pools`.
+- References use explicit `*_id` or `*_ids` fields and must point to IDs in the
+  matching fixture collection.
+- Card `effects`, skill triggers, status stack rules, enemy intents, encounter
+  waves, quest objectives, reward pool entries, and progression unlocks are
+  declarative descriptors only. Later runtime issues can interpret them without
+  changing the IDs.
 
 Examples:
 
