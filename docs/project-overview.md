@@ -1,5 +1,8 @@
 # Project Overview
 
+For the canonical documentation entry point, ownership map, and current
+first-read document for each concern, start at [docs/README.md](README.md).
+
 `rance` is organized as a Godot 4.x project for a long-form grand strategy card
 RPG with campaign pressure, collectible character cards, faction progress,
 quests, events, endings, growth, carryover, and save support.
@@ -75,9 +78,14 @@ that matches the issue scope.
 
 ## Documentation Rule
 
+Any issue that creates a module, moves a module, or changes a module boundary
+must update [docs/README.md](README.md) or explain in the PR/Linear notes why
+the hub did not need a change.
+
 When adding a new module or changing a module boundary, update all relevant
 index points in the same PR:
 
+- `docs/README.md`
 - `docs/project-overview.md`
 - `docs/modules/README.md`
 - The specific `docs/modules/<module>.md` file
@@ -90,5 +98,6 @@ module paths unless they explicitly update the affected boundary docs.
 
 Earlier planning notes under `docs/requests/` are preserved as project history.
 The file `docs/requests/0001-2d-rpg-card-battle-system-outline.md` describes an
-older 2D RPG card-battle direction. Use this overview and the module indexes as
-the source of truth when that draft conflicts with the current direction.
+older 2D RPG card-battle direction. Use the documentation hub, this overview,
+and the module indexes as the source of truth when that draft conflicts with the
+current direction.
