@@ -31,7 +31,7 @@ func is_valid() -> bool:
 	return not id.is_empty() and not entries.is_empty()
 
 
-func generate_candidates(candidate_count: int = 3, seed_value = null) -> Array:
+func generate_candidates(candidate_count: int = 3, seed_value = null, weight_modifiers: Dictionary = {}) -> Array:
 	var rng := RandomNumberGenerator.new()
 	if seed_value == null:
 		rng.randomize()
@@ -43,7 +43,7 @@ func generate_candidates(candidate_count: int = 3, seed_value = null) -> Array:
 		var entry = entries[index]
 		if typeof(entry) != TYPE_DICTIONARY:
 			continue
-		var weight: int = max(1, int(entry.get("weight", 1)))
+		var weight: int = max(1, int(entry.get("weight", 1)) + _weight_bonus_for_entry(entry, weight_modifiers))
 		var normalized: Dictionary = entry.duplicate(true)
 		normalized["weight"] = weight
 		normalized["entry_index"] = index
@@ -59,6 +59,18 @@ func generate_candidates(candidate_count: int = 3, seed_value = null) -> Array:
 		candidates.append(selected)
 
 	return candidates
+
+
+func _weight_bonus_for_entry(entry: Dictionary, weight_modifiers: Dictionary) -> int:
+	var bonus := int(weight_modifiers.get("global_bonus", weight_modifiers.get("reward_weight_bonus", 0)))
+	var kind_bonuses = weight_modifiers.get("kind_bonuses", {})
+	if typeof(kind_bonuses) == TYPE_DICTIONARY:
+		bonus += int(kind_bonuses.get(str(entry.get("kind", "")), 0))
+
+	var content_bonuses = weight_modifiers.get("content_bonuses", {})
+	if typeof(content_bonuses) == TYPE_DICTIONARY:
+		bonus += int(content_bonuses.get(str(entry.get("content_id", "")), 0))
+	return bonus
 
 
 func to_dictionary() -> Dictionary:

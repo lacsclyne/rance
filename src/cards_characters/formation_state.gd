@@ -31,8 +31,20 @@ static func frontline_slot_count_from_progression(
 	return slot_count
 
 
+static func frontline_slot_count_from_system_unlocks(system_unlocks: Dictionary = {}) -> int:
+	return _clamp_slot_count(
+		DEFAULT_FRONTLINE_SLOT_COUNT + max(0, int(system_unlocks.get("frontline_slots_bonus", 0)))
+	)
+
+
 func apply_progression_slot_unlocks(unlocked_progression_ids: Array, slot_unlocks: Dictionary = {}) -> int:
 	var slot_count := frontline_slot_count_from_progression(unlocked_progression_ids, slot_unlocks)
+	set_frontline_slot_count(slot_count)
+	return slot_count
+
+
+func apply_system_unlocks(system_unlocks: Dictionary = {}) -> int:
+	var slot_count := frontline_slot_count_from_system_unlocks(system_unlocks)
 	set_frontline_slot_count(slot_count)
 	return slot_count
 
