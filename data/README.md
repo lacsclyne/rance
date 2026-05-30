@@ -27,7 +27,7 @@ logic, or runtime loaders.
 - Cards: 10
 - Skills: 10
 - Statuses: 6
-- Enemies: 3
+- Enemies: 4
 - Encounters: 3
 - Quests: 3
 - Reward pools: 2
@@ -41,10 +41,10 @@ logic, or runtime loaders.
   named for the collection, such as `cards`, `characters`, or `reward_pools`.
 - References use explicit `*_id` or `*_ids` fields and must point to IDs in the
   matching fixture collection.
-- Card `effects`, skill triggers, status stack rules, enemy intents, encounter
-  waves, quest objectives, reward pool entries, and progression unlocks are
-  declarative descriptors only. Later runtime issues can interpret them without
-  changing the IDs.
+- Card `effects`, skill triggers, status stack rules, enemy notes, encounter
+  intent patterns, encounter waves, quest objectives, reward pool entries, and
+  progression unlocks are declarative descriptors only. Later runtime issues can
+  interpret them without changing the IDs.
 
 Examples:
 

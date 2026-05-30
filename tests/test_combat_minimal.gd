@@ -35,6 +35,14 @@ func _init() -> void:
 	)
 	_expect(start_result.get("ok"), "battle starts")
 	_expect(state.get("player_ap") == 3, "initial AP recovery is applied and capped")
+	_expect(
+		state.call("get_snapshot")["enemy_intents"].size() == 1,
+		"battle start creates the current enemy intent preview"
+	)
+	_expect(
+		state.call("get_snapshot")["enemy_intents"][0]["action_type"] == "attack",
+		"legacy enemy actions are exposed as attack intents"
+	)
 
 	var support_skill := {
 		"id": "skill.test_support",
@@ -102,9 +110,13 @@ func _init() -> void:
 	_expect(log_text.contains("Heal:"), "log records healing")
 	_expect(log_text.contains("Defense:"), "log records defense")
 	_expect(log_text.contains("Status placeholder:"), "log records status placeholders")
-	_expect(log_text.contains("Interrupt placeholder:"), "log records interrupt placeholders")
+	_expect(log_text.contains("was canceled by interrupt"), "log records interrupt intent cancellation")
 	_expect(log_text.contains("player phase begins"), "log records turn switches")
 	_expect(log_text.contains("Battle finished: victory."), "log records battle outcome")
+
+	_test_rotation_intents()
+	_test_boss_key_turn_and_interrupt()
+	_test_conditional_intent()
 
 	if _failures.is_empty():
 		print("Combat minimal test passed.")
@@ -120,3 +132,194 @@ func _init() -> void:
 func _expect(condition: bool, message: String) -> void:
 	if not condition:
 		_failures.append(message)
+
+
+func _test_rotation_intents() -> void:
+	var state: Object = CombatStateScript.new()
+	var result: Object = state.call(
+		"start_battle",
+		{
+			"max_ap": 3,
+			"ap_recovery": 3,
+			"player_max_hp": 30,
+			"player_hp": 30,
+			"enemy_max_hp": 18,
+			"enemy_hp": 18,
+			"leaders": [{"id": "leader.scout", "name": "Scout"}],
+			"intent_pattern": {
+				"rotation": [
+					{
+						"id": "intent.sample_attack",
+						"name": "Sample Attack",
+						"action_type": "attack",
+						"strength": 3,
+						"target_scope": "player_team",
+						"defendable": true,
+						"interruptible": true
+					},
+					{
+						"id": "intent.sample_charge",
+						"name": "Sample Charge",
+						"action_type": "charge",
+						"strength": 2,
+						"target_scope": "enemy_team",
+						"defendable": false,
+						"interruptible": true
+					},
+					{
+						"id": "intent.sample_buff",
+						"name": "Sample Buff",
+						"action_type": "buff",
+						"strength": 4,
+						"target_scope": "enemy_team",
+						"defendable": false,
+						"interruptible": false
+					}
+				]
+			}
+		}
+	)
+	_expect(result.get("ok"), "rotation sample battle starts")
+	_expect(
+		state.call("get_snapshot")["enemy_intents"][0]["action_type"] == "attack",
+		"rotation sample previews attack on turn one"
+	)
+
+	state.call("execute_command", CombatCommandScript.end_player_turn())
+	_expect(
+		state.call("get_snapshot")["enemy_intents"][0]["action_type"] == "charge",
+		"rotation sample previews charge on turn two"
+	)
+
+	state.call("execute_command", CombatCommandScript.end_player_turn())
+	_expect(
+		state.call("get_snapshot")["enemy_intents"][0]["action_type"] == "buff",
+		"rotation sample previews buff on turn three"
+	)
+
+
+func _test_boss_key_turn_and_interrupt() -> void:
+	var state: Object = CombatStateScript.new()
+	var result: Object = state.call(
+		"start_battle",
+		{
+			"max_ap": 3,
+			"ap_recovery": 3,
+			"player_max_hp": 40,
+			"player_hp": 40,
+			"enemy_max_hp": 60,
+			"enemy_hp": 60,
+			"leaders": [{"id": "leader.disruptor", "name": "Disruptor"}],
+			"encounter_definition": {
+				"id": "encounter.sample_boss",
+				"name": "Sample Boss",
+				"intent_pattern": {
+					"rotation": [
+						{
+							"id": "intent.boss_probe",
+							"name": "Boss Probe",
+							"action_type": "attack",
+							"strength": 1,
+							"target_scope": "player_team",
+							"defendable": true,
+							"interruptible": false
+						}
+					],
+					"key_turns": [
+						{
+							"turn": 3,
+							"intents": [
+								{
+									"id": "intent.boss_overdrive",
+									"name": "Boss Overdrive",
+									"action_type": "big_attack",
+									"strength": 12,
+									"target_scope": "player_team",
+									"defendable": true,
+									"interruptible": true
+								}
+							]
+						}
+					]
+				}
+			}
+		}
+	)
+	_expect(result.get("ok"), "boss sample battle starts")
+
+	state.call("execute_command", CombatCommandScript.end_player_turn())
+	state.call("execute_command", CombatCommandScript.end_player_turn())
+	var boss_preview: Array = state.call("get_snapshot")["enemy_intents"]
+	_expect(boss_preview[0]["action_type"] == "big_attack", "boss sample previews fixed-turn big attack")
+	_expect(boss_preview[0]["strength"] == 12, "boss fixed-turn preview exposes strength")
+
+	var interrupt_skill := {
+		"id": "skill.test_interrupt",
+		"name": "Test Interrupt",
+		"cost": 0,
+		"target": "enemy",
+		"effects": [{"type": "interrupt"}]
+	}
+	var hp_before_big_attack: int = state.get("player_hp")
+	var interrupt_result: Object = state.call(
+		"execute_command",
+		CombatCommandScript.use_skill("leader.disruptor", interrupt_skill, "enemy_team")
+	)
+	_expect(interrupt_result.get("ok"), "interrupt skill resolves against boss intent")
+	_expect(state.call("get_snapshot")["enemy_intents"][0]["canceled"], "interrupt cancels boss intent")
+
+	state.call("execute_command", CombatCommandScript.end_player_turn())
+	_expect(
+		state.get("player_hp") == hp_before_big_attack,
+		"canceled boss intent does not deal its previewed damage"
+	)
+
+
+func _test_conditional_intent() -> void:
+	var state: Object = CombatStateScript.new()
+	var result: Object = state.call(
+		"start_battle",
+		{
+			"max_ap": 3,
+			"ap_recovery": 3,
+			"player_max_hp": 20,
+			"player_hp": 20,
+			"enemy_max_hp": 10,
+			"enemy_hp": 4,
+			"leaders": [{"id": "leader.observer", "name": "Observer"}],
+			"intent_pattern": {
+				"rotation": [
+					{
+						"id": "intent.default_attack",
+						"name": "Default Attack",
+						"action_type": "attack",
+						"strength": 1,
+						"target_scope": "player_team",
+						"defendable": true,
+						"interruptible": true
+					}
+				],
+				"conditional": [
+					{
+						"condition": {"type": "enemy_hp_at_or_below", "percent": 50},
+						"intents": [
+							{
+								"id": "intent.low_hp_guard",
+								"name": "Low HP Guard",
+								"action_type": "buff",
+								"strength": 3,
+								"target_scope": "enemy_team",
+								"defendable": false,
+								"interruptible": false
+							}
+						]
+					}
+				]
+			}
+		}
+	)
+	_expect(result.get("ok"), "conditional sample battle starts")
+	_expect(
+		state.call("get_snapshot")["enemy_intents"][0]["id"] == "intent.low_hp_guard",
+		"conditional sample overrides rotation when enemy HP condition matches"
+	)

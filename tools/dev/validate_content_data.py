@@ -112,6 +112,9 @@ ENUMS = {
     "effect_type": ["damage", "block", "heal", "draw", "apply_status", "gain_energy"],
     "skill_trigger": ["battle_start", "turn_start", "card_played", "on_damage", "active"],
     "enemy_rank": ["minion", "elite", "boss"],
+    "intent_action_type": ["attack", "big_attack", "charge", "buff", "debuff", "heal", "defense", "custom"],
+    "intent_target_scope": ["player_team", "enemy_team", "self", "enemy", "all_enemies", "all_players"],
+    "intent_condition_type": ["enemy_hp_at_or_below", "player_hp_at_or_below", "turn_at_least"],
     "reward_kind": ["card", "skill"],
     "unlock_kind": ["character", "card", "skill", "encounter", "quest"],
 }
@@ -307,6 +310,7 @@ class ContentValidator:
             self._validate_int_min_field(row, file_path, row_id, "tier", 1)
             self._validate_waves(row, file_path, row_id)
             self._validate_optional_string(row, file_path, row_id, "environment")
+            self._validate_intent_pattern(row, file_path, row_id)
         elif table_key == "progression_nodes":
             self._validate_non_empty_string(row, file_path, row_id, "name")
             self._validate_string_array(row, file_path, row_id, "requires")
@@ -378,6 +382,128 @@ class ContentValidator:
             self._require_fields(wave, ["enemy_id", "count"], file_path, row_id, field)
             self._validate_string_value(wave.get("enemy_id"), file_path, row_id, f"{field}.enemy_id")
             self._validate_int_min(wave.get("count"), file_path, row_id, f"{field}.count", 1)
+
+    def _validate_intent_pattern(self, row: dict[str, Any], file_path: Path, row_id: str) -> None:
+        if "intent_pattern" not in row:
+            return
+        pattern = row["intent_pattern"]
+        if not isinstance(pattern, dict):
+            self._error(file_path, row_id, "intent_pattern", "expected object")
+            return
+
+        if "rotation" in pattern:
+            self._validate_intent_entries(pattern["rotation"], file_path, row_id, "intent_pattern.rotation")
+
+        if "conditional" in pattern:
+            conditional = pattern["conditional"]
+            if not isinstance(conditional, list):
+                self._error(file_path, row_id, "intent_pattern.conditional", "expected array")
+            else:
+                for index, entry in enumerate(conditional):
+                    field = f"intent_pattern.conditional[{index}]"
+                    if not isinstance(entry, dict):
+                        self._error(file_path, row_id, field, "expected object")
+                        continue
+                    self._require_fields(entry, ["condition", "intents"], file_path, row_id, field)
+                    if "condition" in entry:
+                        self._validate_intent_condition(entry["condition"], file_path, row_id, f"{field}.condition")
+                    if "intents" in entry:
+                        self._validate_intent_entries(entry["intents"], file_path, row_id, f"{field}.intents")
+
+        if "key_turns" in pattern:
+            key_turns = pattern["key_turns"]
+            if not isinstance(key_turns, list):
+                self._error(file_path, row_id, "intent_pattern.key_turns", "expected array")
+            else:
+                for index, entry in enumerate(key_turns):
+                    field = f"intent_pattern.key_turns[{index}]"
+                    if not isinstance(entry, dict):
+                        self._error(file_path, row_id, field, "expected object")
+                        continue
+                    self._require_fields(entry, ["turn", "intents"], file_path, row_id, field)
+                    if "turn" in entry:
+                        self._validate_int_min(entry["turn"], file_path, row_id, f"{field}.turn", 1)
+                    if "intents" in entry:
+                        self._validate_intent_entries(entry["intents"], file_path, row_id, f"{field}.intents")
+
+    def _validate_intent_entries(self, value: Any, file_path: Path, row_id: str, field: str) -> None:
+        if not isinstance(value, list):
+            self._error(file_path, row_id, field, "expected array")
+            return
+        for index, entry in enumerate(value):
+            entry_field = f"{field}[{index}]"
+            if not isinstance(entry, dict):
+                self._error(file_path, row_id, entry_field, "expected object")
+                continue
+            if "intents" in entry:
+                self._validate_intent_entries(entry["intents"], file_path, row_id, f"{entry_field}.intents")
+            else:
+                self._validate_intent_token(entry, file_path, row_id, entry_field)
+
+    def _validate_intent_token(self, token: dict[str, Any], file_path: Path, row_id: str, field: str) -> None:
+        self._require_fields(
+            token,
+            ["id", "name", "action_type", "strength", "target_scope", "defendable", "interruptible"],
+            file_path,
+            row_id,
+            field,
+        )
+        if "id" in token and self._validate_string_value(token["id"], file_path, row_id, f"{field}.id"):
+            if not ID_RE.fullmatch(token["id"]):
+                self._error(file_path, row_id, f"{field}.id", "must match <kind>.<name> lowercase ID format")
+        if "name" in token:
+            self._validate_non_empty_string(token, file_path, row_id, "name", field)
+        if "action_type" in token:
+            self._validate_enum_value(token["action_type"], file_path, row_id, f"{field}.action_type", ENUMS["intent_action_type"])
+        if "strength" in token:
+            self._validate_int_min(token["strength"], file_path, row_id, f"{field}.strength", 0)
+        if "target_scope" in token:
+            self._validate_enum_value(token["target_scope"], file_path, row_id, f"{field}.target_scope", ENUMS["intent_target_scope"])
+        if "defendable" in token:
+            self._validate_bool(token["defendable"], file_path, row_id, f"{field}.defendable")
+        if "interruptible" in token:
+            self._validate_bool(token["interruptible"], file_path, row_id, f"{field}.interruptible")
+        if "source_id" in token:
+            self._validate_string_value(token["source_id"], file_path, row_id, f"{field}.source_id")
+        if "effects" in token:
+            self._validate_intent_effects(token["effects"], file_path, row_id, f"{field}.effects")
+
+    def _validate_intent_effects(self, value: Any, file_path: Path, row_id: str, field: str) -> None:
+        if not isinstance(value, list):
+            self._error(file_path, row_id, field, "expected array")
+            return
+        for index, effect in enumerate(value):
+            effect_field = f"{field}[{index}]"
+            if not isinstance(effect, dict):
+                self._error(file_path, row_id, effect_field, "expected object")
+                continue
+            self._require_fields(effect, ["type"], file_path, row_id, effect_field)
+            if "type" in effect:
+                self._validate_string_value(effect["type"], file_path, row_id, f"{effect_field}.type")
+            if "amount" in effect:
+                self._validate_int_min(effect["amount"], file_path, row_id, f"{effect_field}.amount", 0)
+            if "duration" in effect:
+                self._validate_int_min(effect["duration"], file_path, row_id, f"{effect_field}.duration", 1)
+            if "target" in effect:
+                self._validate_string_value(effect["target"], file_path, row_id, f"{effect_field}.target")
+            if "status_id" in effect:
+                self._validate_string_value(effect["status_id"], file_path, row_id, f"{effect_field}.status_id")
+
+    def _validate_intent_condition(self, condition: Any, file_path: Path, row_id: str, field: str) -> None:
+        if not isinstance(condition, dict):
+            self._error(file_path, row_id, field, "expected object")
+            return
+        self._require_fields(condition, ["type"], file_path, row_id, field)
+        if "type" in condition:
+            self._validate_enum_value(condition["type"], file_path, row_id, f"{field}.type", ENUMS["intent_condition_type"])
+        if "value" in condition:
+            self._validate_int_min(condition["value"], file_path, row_id, f"{field}.value", 0)
+        if "amount" in condition:
+            self._validate_int_min(condition["amount"], file_path, row_id, f"{field}.amount", 0)
+        if "percent" in condition:
+            self._validate_number_min(condition["percent"], file_path, row_id, f"{field}.percent", 0)
+        if "turn" in condition:
+            self._validate_int_min(condition["turn"], file_path, row_id, f"{field}.turn", 1)
 
     def _validate_unlocks(self, row: dict[str, Any], file_path: Path, row_id: str) -> None:
         unlocks = self._array_value(row, file_path, row_id, "unlocks")
@@ -606,6 +732,21 @@ class ContentValidator:
             return False
         return True
 
+    def _validate_number_min(self, value: Any, file_path: Path, row_id: str, field: str, minimum: float) -> bool:
+        if not self._is_number(value):
+            self._error(file_path, row_id, field, "expected number")
+            return False
+        if value < minimum:
+            self._error(file_path, row_id, field, f"must be >= {minimum}")
+            return False
+        return True
+
+    def _validate_bool(self, value: Any, file_path: Path, row_id: str, field: str) -> bool:
+        if not isinstance(value, bool):
+            self._error(file_path, row_id, field, "expected boolean")
+            return False
+        return True
+
     def _validate_ref_field(
         self,
         row: dict[str, Any],
@@ -677,6 +818,9 @@ class ContentValidator:
 
     def _is_int(self, value: Any) -> bool:
         return isinstance(value, int) and not isinstance(value, bool)
+
+    def _is_number(self, value: Any) -> bool:
+        return (isinstance(value, int) or isinstance(value, float)) and not isinstance(value, bool)
 
     def _error(self, file_path: Path, row_id: str, field: str, message: str) -> None:
         self.errors.append(f"{self._display_path(file_path)} [{row_id}] field '{field}': {message}")

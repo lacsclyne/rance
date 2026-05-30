@@ -28,6 +28,15 @@
       "base_stats": { "hp": 26, "attack": 6, "defense": 3, "speed": 5 },
       "skill_ids": ["skill.battle_rhythm"],
       "intent_notes": "Uses repeated pressure to punish slow decks."
+    },
+    {
+      "id": "enemy.foundry_overseer",
+      "name": "Foundry Overseer",
+      "faction_id": "faction.iron_court",
+      "rank": "boss",
+      "base_stats": { "hp": 64, "attack": 10, "defense": 4, "speed": 3 },
+      "skill_ids": ["skill.command_aura", "skill.surge_control"],
+      "intent_notes": "Signals a fixed-turn heavy strike so players can reserve AP for defense or interrupts."
     }
   ]
 }

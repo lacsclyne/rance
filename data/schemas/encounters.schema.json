@@ -33,7 +33,8 @@
             }
           },
           "reward_pool_id": { "$ref": "#/$defs/contentId" },
-          "environment": { "type": "string" }
+          "environment": { "type": "string" },
+          "intent_pattern": { "$ref": "#/$defs/intentPattern" }
         }
       }
     }
@@ -42,6 +43,117 @@
     "contentId": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "intentPattern": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rotation": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/intentEntry" }
+        },
+        "conditional": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["condition", "intents"],
+            "additionalProperties": false,
+            "properties": {
+              "condition": { "$ref": "#/$defs/intentCondition" },
+              "intents": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/$defs/intentToken" }
+              }
+            }
+          }
+        },
+        "key_turns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["turn", "intents"],
+            "additionalProperties": false,
+            "properties": {
+              "turn": { "type": "integer", "minimum": 1 },
+              "intents": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "$ref": "#/$defs/intentToken" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "intentEntry": {
+      "oneOf": [
+        { "$ref": "#/$defs/intentToken" },
+        {
+          "type": "object",
+          "required": ["intents"],
+          "additionalProperties": false,
+          "properties": {
+            "intents": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/intentToken" }
+            }
+          }
+        }
+      ]
+    },
+    "intentToken": {
+      "type": "object",
+      "required": ["id", "name", "action_type", "strength", "target_scope", "defendable", "interruptible"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/contentId" },
+        "name": { "type": "string", "minLength": 1 },
+        "action_type": {
+          "type": "string",
+          "enum": ["attack", "big_attack", "charge", "buff", "debuff", "heal", "defense", "custom"]
+        },
+        "strength": { "type": "integer", "minimum": 0 },
+        "target_scope": {
+          "type": "string",
+          "enum": ["player_team", "enemy_team", "self", "enemy", "all_enemies", "all_players"]
+        },
+        "defendable": { "type": "boolean" },
+        "interruptible": { "type": "boolean" },
+        "source_id": { "$ref": "#/$defs/contentId" },
+        "effects": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/intentEffect" }
+        }
+      }
+    },
+    "intentEffect": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": true,
+      "properties": {
+        "type": { "type": "string" },
+        "amount": { "type": "integer", "minimum": 0 },
+        "duration": { "type": "integer", "minimum": 1 },
+        "target": { "type": "string" },
+        "status_id": { "$ref": "#/$defs/contentId" }
+      }
+    },
+    "intentCondition": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["enemy_hp_at_or_below", "player_hp_at_or_below", "turn_at_least"]
+        },
+        "value": { "type": "integer", "minimum": 0 },
+        "amount": { "type": "integer", "minimum": 0 },
+        "percent": { "type": "number", "minimum": 0 },
+        "turn": { "type": "integer", "minimum": 1 }
+      }
     }
   }
 }

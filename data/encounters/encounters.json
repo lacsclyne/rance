@@ -10,7 +10,38 @@
         { "enemy_id": "enemy.bandit_skirmisher", "count": 2 }
       ],
       "reward_pool_id": "reward_pool.prologue",
-      "environment": "forest_road"
+      "environment": "forest_road",
+      "intent_pattern": {
+        "rotation": [
+          {
+            "id": "intent.road_quick_cut",
+            "name": "Quick Cut",
+            "action_type": "attack",
+            "strength": 4,
+            "target_scope": "player_team",
+            "defendable": true,
+            "interruptible": true
+          },
+          {
+            "id": "intent.road_focus",
+            "name": "Focus",
+            "action_type": "charge",
+            "strength": 2,
+            "target_scope": "enemy_team",
+            "defendable": false,
+            "interruptible": true
+          },
+          {
+            "id": "intent.road_guard_up",
+            "name": "Guard Up",
+            "action_type": "buff",
+            "strength": 3,
+            "target_scope": "enemy_team",
+            "defendable": false,
+            "interruptible": false
+          }
+        ]
+      }
     },
     {
       "id": "encounter.burned_shrine",
@@ -21,7 +52,36 @@
         { "enemy_id": "enemy.ember_acolyte", "count": 1 }
       ],
       "reward_pool_id": "reward_pool.prologue",
-      "environment": "ruined_shrine"
+      "environment": "ruined_shrine",
+      "intent_pattern": {
+        "rotation": [
+          {
+            "id": "intent.shrine_spark",
+            "name": "Shrine Spark",
+            "action_type": "attack",
+            "strength": 5,
+            "target_scope": "player_team",
+            "defendable": true,
+            "interruptible": true
+          }
+        ],
+        "conditional": [
+          {
+            "condition": { "type": "enemy_hp_at_or_below", "percent": 50 },
+            "intents": [
+              {
+                "id": "intent.shrine_desperate_barrier",
+                "name": "Desperate Barrier",
+                "action_type": "buff",
+                "strength": 5,
+                "target_scope": "enemy_team",
+                "defendable": false,
+                "interruptible": true
+              }
+            ]
+          }
+        ]
+      }
     },
     {
       "id": "encounter.foundry_gate",
@@ -29,10 +89,39 @@
       "tier": 2,
       "waves": [
         { "enemy_id": "enemy.iron_hound", "count": 2 },
-        { "enemy_id": "enemy.ember_acolyte", "count": 1 }
+        { "enemy_id": "enemy.foundry_overseer", "count": 1 }
       ],
       "reward_pool_id": "reward_pool.foundry",
-      "environment": "outer_foundry"
+      "environment": "outer_foundry",
+      "intent_pattern": {
+        "rotation": [
+          {
+            "id": "intent.foundry_probe",
+            "name": "Foundry Probe",
+            "action_type": "attack",
+            "strength": 6,
+            "target_scope": "player_team",
+            "defendable": true,
+            "interruptible": true
+          }
+        ],
+        "key_turns": [
+          {
+            "turn": 3,
+            "intents": [
+              {
+                "id": "intent.foundry_meltdown",
+                "name": "Foundry Meltdown",
+                "action_type": "big_attack",
+                "strength": 16,
+                "target_scope": "player_team",
+                "defendable": true,
+                "interruptible": true
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

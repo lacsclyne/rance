@@ -14,7 +14,7 @@ exercise IDs, references, and fixture loading without adding runtime code.
 | Cards | `data/cards/cards.json` | `data/schemas/cards.schema.json` | 10 |
 | Skills | `data/skills/skills.json` | `data/schemas/skills.schema.json` | 10 |
 | Statuses | `data/statuses/statuses.json` | `data/schemas/statuses.schema.json` | 6 |
-| Enemies | `data/enemies/enemies.json` | `data/schemas/enemies.schema.json` | 3 |
+| Enemies | `data/enemies/enemies.json` | `data/schemas/enemies.schema.json` | 4 |
 | Encounters | `data/encounters/encounters.json` | `data/schemas/encounters.schema.json` | 3 |
 | Quests | `data/quests/quests.json` | `data/schemas/quests.schema.json` | 2 |
 | Reward pools | `data/reward_pools/reward_pools.json` | `data/schemas/reward_pools.schema.json` | 1 |
