@@ -31,3 +31,15 @@ and local validation commands.
 - `docs/modules/tests.md`
 - `tools/README.md`
 - `tools/dev/README.md`
+
+## Current Commands
+
+- Validate content fixtures with Godot:
+  `godot --headless --path . --script tools/dev/validate_content_data.gd`
+- Validate content fixtures without Godot:
+  `python tools/dev/validate_content_data.py`
+- Report content inventory counts, summaries, placeholder strings, and
+  validation-derived missing references:
+  `python tools/dev/content_inventory_report.py`
+- Write the inventory report as JSON:
+  `python tools/dev/content_inventory_report.py --json-output content-inventory.json`
