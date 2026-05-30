@@ -11,6 +11,7 @@ godot --headless --path . --script tests/test_progression_state_minimal.gd
 godot --headless --path . --script tests/test_save_manager_minimal.gd
 godot --headless --path . --script tests/test_campaign_fronts_minimal.gd
 godot --headless --path . --script tests/test_resource_registry.gd
+godot --headless --path . --script tests/test_ui_vertical_slice_minimal.gd
 godot --headless --path . --script tests/e2e/test_headless_mvp_loop.gd
 ```
 

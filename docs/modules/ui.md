@@ -24,8 +24,11 @@ navigation between player-facing surfaces.
   `show`, `current`, and `clear` operations.
 - `UIShell` is a neutral `Control` scene with a single `ScreenHost` child for
   future screens.
-- The shell deliberately avoids final layout hierarchy, gameplay-specific screen
-  composition, fonts, image assets, and decorative styling.
+- `QuestVerticalSliceScreen` is the first playable prototype screen. It uses the
+  existing sample content, formation state, combat state, quest definition, and
+  reward pool modules to expose one strategy-to-quest-to-combat-to-reward loop.
+- The shell deliberately avoids final fonts, image assets, decorative styling,
+  and permanent composition decisions beyond hosting this prototype route.
 
 ## Interface Boundaries
 
@@ -36,6 +39,8 @@ navigation between player-facing surfaces.
 - Domain modules should remain testable without UI scenes loaded.
 - Router tests run without gameplay state through
   `res://tests/test_ui_router_minimal.gd`.
+- The first playable UI smoke test runs through
+  `res://tests/test_ui_vertical_slice_minimal.gd`.
 
 ## First Reads for Follow-up Issues
 

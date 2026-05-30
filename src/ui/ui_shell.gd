@@ -3,7 +3,20 @@ extends Control
 
 const SceneRouterScript := preload("res://src/ui/scene_router.gd")
 
+@export var initial_route_id := ""
+@export var initial_screen_scene: PackedScene
+
 var router := SceneRouterScript.new()
+
+
+func _ready() -> void:
+	if initial_screen_scene == null:
+		return
+	var route_id := initial_route_id
+	if route_id.strip_edges().is_empty():
+		route_id = "initial"
+	register_screen(route_id, initial_screen_scene)
+	show_screen(route_id)
 
 
 func register_screen(route_id: String, screen_scene: PackedScene) -> Dictionary:
