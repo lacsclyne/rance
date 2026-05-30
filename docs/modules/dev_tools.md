@@ -56,7 +56,7 @@ reported as clear local setup messages rather than committed workarounds.
 - Validate the placeholder-safe asset manifest:
   `python tools/dev/validate_asset_manifest.py`
 - Report content inventory counts, summaries, placeholder strings, and
-  validation-derived missing references:
+  validation-derived missing references, including advisory MVP roster coverage:
   `python tools/dev/content_inventory_report.py`
 - Write the inventory report as JSON:
   `python tools/dev/content_inventory_report.py --json-output content-inventory.json`

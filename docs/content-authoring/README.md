@@ -41,6 +41,20 @@ If Godot is installed, the equivalent runtime-facing check is:
 godot --headless --path . --script tools/dev/validate_content_data.gd
 ```
 
+5. Run the advisory inventory report when checking MVP roster completeness:
+
+```sh
+python tools/dev/content_inventory_report.py
+```
+
+Read the `MVP Roster Coverage` section as a planning checklist, not a hard
+content gate. It reports the current target of 2 roster factions, 3 characters
+per faction, and 2 card versions per character, grouped by faction and
+character. Missing character slots, missing card version slots, duplicate
+version slots, design packet link gaps when those fields are present, and asset
+reference gaps can be fixed over multiple content passes without requiring
+final names, final art, or final balance values.
+
 ## ID Rules
 
 - IDs use `<kind>.<name>` with lowercase ASCII letters, numbers, and

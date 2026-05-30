@@ -19,6 +19,11 @@ from typing import Any, Iterable
 from validate_content_data import CONTENT_LABELS, TABLES, ContentValidator
 
 
+DEFAULT_ASSET_MANIFEST_PATH = Path("assets/asset_manifest.json")
+MVP_FACTION_TARGET = 2
+MVP_CHARACTERS_PER_FACTION_TARGET = 3
+MVP_CARD_VERSIONS_PER_CHARACTER_TARGET = 2
+
 CONTENT_COUNT_ORDER = [
     ("factions", "Factions"),
     ("characters", "Characters"),
@@ -45,6 +50,50 @@ MISSING_FIELD_RE = re.compile(
     r"^(?P<file>.*?) \[(?P<row>[^\]]+)\] field '(?P<field>[^']+)': "
     r"missing required field$"
 )
+CARD_CHARACTER_REF_FIELDS = (
+    "character_id",
+    "owner_character_id",
+    "source_character_id",
+)
+CARD_CHARACTER_REF_LIST_FIELDS = (
+    "character_ids",
+    "owner_character_ids",
+    "source_character_ids",
+)
+CARD_VERSION_SLOT_FIELDS = (
+    "version_slot",
+    "card_version",
+    "variant",
+    "variant_id",
+    "slot",
+    "version",
+)
+DESIGN_PACKET_FIELDS = (
+    "design_packet",
+    "design_packet_url",
+    "design_packet_path",
+    "design_doc",
+    "design_doc_url",
+    "design_url",
+    "packet_url",
+)
+CHARACTER_ASSET_FIELDS = (
+    "portrait_asset_id",
+    "portrait_id",
+    "portrait_path",
+    "asset_id",
+    "asset_ref",
+    "asset_refs",
+)
+CARD_ASSET_FIELDS = (
+    "card_art_asset_id",
+    "art_asset_id",
+    "art_id",
+    "art_path",
+    "asset_id",
+    "asset_ref",
+    "asset_refs",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -56,6 +105,15 @@ def parse_args() -> argparse.Namespace:
         default="data",
         type=Path,
         help="Path to the data directory. Defaults to ./data.",
+    )
+    parser.add_argument(
+        "--asset-manifest",
+        default=DEFAULT_ASSET_MANIFEST_PATH,
+        type=Path,
+        help=(
+            "Path to the asset manifest used for roster asset coverage. "
+            "Defaults to ./assets/asset_manifest.json."
+        ),
     )
     parser.add_argument(
         "--json-output",
@@ -75,13 +133,23 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def build_report(data_root: Path) -> dict[str, Any]:
+def build_report(
+    data_root: Path,
+    asset_manifest_path: Path = DEFAULT_ASSET_MANIFEST_PATH,
+) -> dict[str, Any]:
     validator = ContentValidator(data_root)
     validation_ok = validator.run()
     rows_by_table = {table["key"]: _rows_for_table(validator.documents, table) for table in TABLES}
     placeholders = _find_placeholders(rows_by_table)
     validation_errors = _summarize_validation_errors(validator.errors)
     content_counts = _content_counts(rows_by_table)
+    mvp_roster_coverage = _mvp_roster_coverage(
+        rows_by_table,
+        asset_manifest_path,
+        MVP_FACTION_TARGET,
+        MVP_CHARACTERS_PER_FACTION_TARGET,
+        MVP_CARD_VERSIONS_PER_CHARACTER_TARGET,
+    )
 
     return {
         "data_root": data_root.as_posix(),
@@ -101,6 +169,7 @@ def build_report(data_root: Path) -> dict[str, Any]:
         "missing_references": validation_errors["missing_references"],
         "missing_required_fields": validation_errors["missing_required_fields"],
         "placeholders": placeholders,
+        "mvp_roster_coverage": mvp_roster_coverage,
     }
 
 
@@ -139,6 +208,8 @@ def render_summary(report: dict[str, Any]) -> str:
             f"- Reward pool entries by kind: {_format_counts(summaries['reward_pools']['entries_by_kind'])}",
         ]
     )
+
+    lines.extend(_render_mvp_roster_coverage(report["mvp_roster_coverage"]))
 
     if validation["error_count"]:
         lines.append("")
@@ -212,6 +283,270 @@ def _content_summaries(rows_by_table: dict[str, list[Any]]) -> dict[str, Any]:
         "quests": _quest_summary(_dict_rows(rows_by_table["quests"])),
         "campaigns": _campaign_summary(_dict_rows(rows_by_table["campaigns"])),
     }
+
+
+def _mvp_roster_coverage(
+    rows_by_table: dict[str, list[Any]],
+    asset_manifest_path: Path,
+    faction_target: int,
+    character_target: int,
+    card_version_target: int,
+) -> dict[str, Any]:
+    factions = _dict_rows(rows_by_table["factions"])
+    characters = _dict_rows(rows_by_table["characters"])
+    cards = _dict_rows(rows_by_table["cards"])
+    asset_manifest = _asset_manifest_report(asset_manifest_path)
+    characters_by_faction = _characters_by_faction(characters)
+    roster_factions = _select_roster_factions(factions, characters_by_faction, faction_target)
+    roster_faction_ids = {faction["id"] for faction in roster_factions if isinstance(faction.get("id"), str)}
+    non_roster_factions = [
+        _faction_reference(faction, len(characters_by_faction.get(str(faction.get("id")), [])))
+        for faction in factions
+        if isinstance(faction.get("id"), str) and faction["id"] not in roster_faction_ids
+    ]
+    card_model = _card_version_model(cards)
+    design_model = {
+        "character_fields": _observed_fields(characters, DESIGN_PACKET_FIELDS),
+        "card_fields": _observed_fields(cards, DESIGN_PACKET_FIELDS),
+    }
+    asset_model = {
+        "character_fields": _observed_fields(characters, CHARACTER_ASSET_FIELDS),
+        "card_fields": _observed_fields(cards, CARD_ASSET_FIELDS),
+        "manifest_path": asset_manifest["path"],
+        "manifest_present": asset_manifest["present"],
+        "manifest_errors": asset_manifest["errors"],
+    }
+
+    faction_reports: list[dict[str, Any]] = []
+    missing_character_slots = 0
+    missing_card_version_slots = 0
+    duplicate_version_slot_count = 0
+    missing_design_packet_link_count = 0
+    missing_asset_reference_count = 0
+
+    for faction in roster_factions:
+        faction_id = str(faction["id"])
+        faction_characters = characters_by_faction.get(faction_id, [])
+        character_reports: list[dict[str, Any]] = []
+        faction_missing_character_slots = max(0, character_target - len(faction_characters))
+        missing_character_slots += faction_missing_character_slots
+
+        for character in faction_characters:
+            character_report = _character_roster_report(
+                character,
+                card_model,
+                asset_manifest,
+                design_model["character_fields"],
+                design_model["card_fields"],
+                asset_model["character_fields"],
+                asset_model["card_fields"],
+                card_version_target,
+            )
+            character_reports.append(character_report)
+            card_versions = character_report["card_versions"]
+            missing_card_version_slots += card_versions["missing_version_slots"]
+            duplicate_version_slot_count += len(card_versions["duplicate_version_slots"])
+            missing_design_packet_link_count += character_report["missing_design_packet_link_count"]
+            missing_asset_reference_count += character_report["missing_asset_reference_count"]
+
+        faction_reports.append(
+            {
+                "id": faction_id,
+                "name": faction.get("name", faction_id),
+                "alignment": faction.get("alignment"),
+                "character_count": len(faction_characters),
+                "character_target": character_target,
+                "missing_character_slots": faction_missing_character_slots,
+                "characters": character_reports,
+            }
+        )
+
+    missing_faction_slots = max(0, faction_target - len(roster_factions))
+    issue_count = (
+        missing_faction_slots
+        + missing_character_slots
+        + missing_card_version_slots
+        + duplicate_version_slot_count
+        + missing_design_packet_link_count
+        + missing_asset_reference_count
+    )
+
+    return {
+        "advisory": True,
+        "targets": {
+            "factions": faction_target,
+            "characters_per_faction": character_target,
+            "card_versions_per_character": card_version_target,
+        },
+        "status": "complete" if issue_count == 0 else "incomplete",
+        "summary": {
+            "roster_faction_count": len(roster_factions),
+            "missing_faction_slots": missing_faction_slots,
+            "extra_roster_faction_count": max(0, len(roster_factions) - faction_target),
+            "missing_character_slots": missing_character_slots,
+            "missing_card_version_slots": missing_card_version_slots,
+            "duplicate_version_slot_count": duplicate_version_slot_count,
+            "missing_design_packet_link_count": missing_design_packet_link_count,
+            "missing_asset_reference_count": missing_asset_reference_count,
+        },
+        "factions": faction_reports,
+        "non_roster_factions": non_roster_factions,
+        "card_version_model": {
+            "available": card_model["available"],
+            "character_ref_fields": card_model["character_ref_fields"],
+            "version_slot_fields": card_model["version_slot_fields"],
+            "note": card_model["note"],
+        },
+        "design_packet_model": {
+            "available": bool(design_model["character_fields"] or design_model["card_fields"]),
+            "character_fields": design_model["character_fields"],
+            "card_fields": design_model["card_fields"],
+        },
+        "asset_reference_model": asset_model,
+    }
+
+
+def _render_mvp_roster_coverage(roster: dict[str, Any]) -> list[str]:
+    targets = roster["targets"]
+    summary = roster["summary"]
+    lines = [
+        "",
+        "MVP Roster Coverage (advisory):",
+        (
+            "Target: "
+            f"{targets['factions']} factions, "
+            f"{targets['characters_per_faction']} characters per faction, "
+            f"{targets['card_versions_per_character']} card versions per character"
+        ),
+        f"Coverage: {roster['status']} ({_format_roster_issues(summary)})",
+        (
+            "Roster factions: "
+            f"{summary['roster_faction_count']}/{targets['factions']}"
+        ),
+    ]
+
+    if summary["missing_faction_slots"]:
+        lines.append(f"Missing faction slots: {summary['missing_faction_slots']}")
+    if roster["non_roster_factions"]:
+        lines.append(
+            "Non-roster factions: "
+            + ", ".join(
+                (
+                    f"{faction['id']}"
+                    f" ({faction['alignment'] or 'unknown'}, "
+                    f"{faction['character_count']} characters)"
+                )
+                for faction in roster["non_roster_factions"]
+            )
+        )
+
+    for faction in roster["factions"]:
+        lines.append(
+            (
+                f"- {faction['name']} ({faction['id']}): "
+                f"{faction['character_count']}/{faction['character_target']} characters"
+            )
+        )
+        if faction["missing_character_slots"]:
+            lines.append(f"  Missing character slots: {faction['missing_character_slots']}")
+
+        for character in faction["characters"]:
+            card_versions = character["card_versions"]
+            if card_versions["model_available"]:
+                card_summary = (
+                    f"card versions {card_versions['version_slot_count']}/"
+                    f"{card_versions['target']}"
+                )
+            else:
+                card_summary = (
+                    f"card versions 0/{card_versions['target']} modeled; "
+                    f"deck refs {len(card_versions['fallback_starting_deck_ids'])} unique"
+                )
+            lines.append(
+                (
+                    f"  - {character['name']} ({character['id']}): "
+                    f"{card_summary}; "
+                    f"portrait asset {_asset_status_label(character['portrait_asset'])}; "
+                    f"design packet {_field_status_label(character['design_packet'])}"
+                )
+            )
+            if card_versions["missing_version_slots"]:
+                lines.append(
+                    f"    Missing card version slots: {card_versions['missing_version_slots']}"
+                )
+            for duplicate in card_versions["duplicate_version_slots"]:
+                lines.append(
+                    (
+                        f"    Duplicate version slot {duplicate['slot']}: "
+                        f"{', '.join(duplicate['card_ids'])}"
+                    )
+                )
+            if card_versions["cards_missing_version_slot"]:
+                lines.append(
+                    (
+                        "    Cards missing version slot fields: "
+                        + ", ".join(card_versions["cards_missing_version_slot"])
+                    )
+                )
+            if card_versions["missing_card_art_source_ids"]:
+                lines.append(
+                    (
+                        "    Missing card art manifest entries: "
+                        + ", ".join(card_versions["missing_card_art_source_ids"])
+                    )
+                )
+            if character["missing_content_asset_fields"]:
+                lines.append(
+                    (
+                        "    Missing content asset fields: "
+                        + ", ".join(character["missing_content_asset_fields"])
+                    )
+                )
+            if card_versions["missing_card_asset_fields"]:
+                lines.append(
+                    (
+                        "    Cards missing content asset fields: "
+                        + ", ".join(card_versions["missing_card_asset_fields"])
+                    )
+                )
+
+    card_model = roster["card_version_model"]
+    lines.append(f"Card version model: {card_model['note']}")
+
+    design_model = roster["design_packet_model"]
+    if design_model["available"]:
+        lines.append(
+            (
+                "Design packet fields: "
+                f"characters={_format_list(design_model['character_fields'])}; "
+                f"cards={_format_list(design_model['card_fields'])}"
+            )
+        )
+    else:
+        lines.append("Design packet links: no design packet fields found; skipped")
+
+    asset_model = roster["asset_reference_model"]
+    if asset_model["character_fields"] or asset_model["card_fields"]:
+        lines.append(
+            (
+                "Content asset fields: "
+                f"characters={_format_list(asset_model['character_fields'])}; "
+                f"cards={_format_list(asset_model['card_fields'])}"
+            )
+        )
+    else:
+        lines.append(
+            (
+                "Content asset fields: none found; using asset manifest "
+                f"{asset_model['manifest_path']} source_id coverage"
+            )
+        )
+    if asset_model["manifest_errors"]:
+        lines.append(
+            "Asset manifest notes: " + "; ".join(asset_model["manifest_errors"])
+        )
+
+    return lines
 
 
 def _faction_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -380,6 +715,410 @@ def _campaign_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _characters_by_faction(characters: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for character in characters:
+        faction_id = character.get("faction_id")
+        if isinstance(faction_id, str):
+            groups.setdefault(faction_id, []).append(character)
+    return groups
+
+
+def _select_roster_factions(
+    factions: list[dict[str, Any]],
+    characters_by_faction: dict[str, list[dict[str, Any]]],
+    faction_target: int,
+) -> list[dict[str, Any]]:
+    roster_factions = [
+        faction
+        for faction in factions
+        if isinstance(faction.get("id"), str) and faction.get("alignment") != "enemy"
+    ]
+    selected_ids = {faction["id"] for faction in roster_factions}
+
+    if len(roster_factions) < faction_target:
+        for faction in factions:
+            faction_id = faction.get("id")
+            if not isinstance(faction_id, str):
+                continue
+            if faction_id in selected_ids or faction_id not in characters_by_faction:
+                continue
+            roster_factions.append(faction)
+            selected_ids.add(faction_id)
+            if len(roster_factions) >= faction_target:
+                break
+
+    if not roster_factions:
+        return [faction for faction in factions[:faction_target] if isinstance(faction.get("id"), str)]
+
+    return roster_factions
+
+
+def _faction_reference(faction: dict[str, Any], character_count: int) -> dict[str, Any]:
+    faction_id = str(faction.get("id", "<missing faction id>"))
+    return {
+        "id": faction_id,
+        "name": faction.get("name", faction_id),
+        "alignment": faction.get("alignment"),
+        "character_count": character_count,
+    }
+
+
+def _character_roster_report(
+    character: dict[str, Any],
+    card_model: dict[str, Any],
+    asset_manifest: dict[str, Any],
+    character_design_fields: list[str],
+    card_design_fields: list[str],
+    character_asset_fields: list[str],
+    card_asset_fields: list[str],
+    card_version_target: int,
+) -> dict[str, Any]:
+    character_id = str(character.get("id", "<missing character id>"))
+    portrait_asset = _source_asset_status(asset_manifest, character_id, ["portrait"])
+    design_packet = _field_coverage(character, character_design_fields)
+    content_asset = _field_coverage(character, character_asset_fields)
+    card_versions = _character_card_versions(
+        character,
+        card_model,
+        asset_manifest,
+        card_design_fields,
+        card_asset_fields,
+        card_version_target,
+    )
+
+    missing_design_count = 1 if design_packet["status"] == "missing" else 0
+    missing_design_count += card_versions["missing_design_packet_link_count"]
+    missing_asset_count = 1 if portrait_asset["status"] == "missing" else 0
+    missing_asset_count += 1 if content_asset["status"] == "missing" else 0
+    missing_asset_count += card_versions["missing_asset_reference_count"]
+
+    return {
+        "id": character_id,
+        "name": character.get("name", character_id),
+        "role": character.get("role"),
+        "portrait_asset": portrait_asset,
+        "design_packet": design_packet,
+        "content_asset": content_asset,
+        "card_versions": card_versions,
+        "missing_design_packet_link_count": missing_design_count,
+        "missing_asset_reference_count": missing_asset_count,
+        "missing_content_asset_fields": (
+            list(character_asset_fields) if content_asset["status"] == "missing" else []
+        ),
+    }
+
+
+def _character_card_versions(
+    character: dict[str, Any],
+    card_model: dict[str, Any],
+    asset_manifest: dict[str, Any],
+    card_design_fields: list[str],
+    card_asset_fields: list[str],
+    card_version_target: int,
+) -> dict[str, Any]:
+    character_id = str(character.get("id", ""))
+    bound_cards = card_model["cards_by_character"].get(character_id, [])
+    card_index = card_model["card_index"]
+    fallback_starting_deck_ids = _unique_strings(_list(character.get("starting_deck")))
+    version_slots: list[str] = []
+    cards_missing_version_slot: list[str] = []
+    duplicate_version_slots: list[dict[str, Any]] = []
+    missing_design_packet_link_count = 0
+    missing_asset_reference_count = 0
+    missing_card_art_source_ids: list[str] = []
+    missing_card_asset_fields: list[str] = []
+    missing_card_design_packet_links: list[str] = []
+    slot_to_card_ids: dict[str, list[str]] = {}
+
+    report_cards = bound_cards if bound_cards else [
+        card_index[card_id]
+        for card_id in fallback_starting_deck_ids
+        if card_id in card_index
+    ]
+
+    for card in bound_cards:
+        card_id = str(card.get("id", "<missing card id>"))
+        slot = _card_version_slot(card)
+        if slot is None:
+            cards_missing_version_slot.append(card_id)
+            continue
+        version_slots.append(slot)
+        slot_to_card_ids.setdefault(slot, []).append(card_id)
+
+    for slot, card_ids in sorted(slot_to_card_ids.items()):
+        if len(card_ids) > 1:
+            duplicate_version_slots.append({"slot": slot, "card_ids": card_ids})
+
+    for card in report_cards:
+        card_id = str(card.get("id", "<missing card id>"))
+        card_art = _source_asset_status(asset_manifest, card_id, ["card_art"])
+        if card_art["status"] == "missing":
+            missing_asset_reference_count += 1
+            missing_card_art_source_ids.append(card_id)
+
+        card_asset = _field_coverage(card, card_asset_fields)
+        if card_asset["status"] == "missing":
+            missing_asset_reference_count += 1
+            missing_card_asset_fields.append(card_id)
+
+        card_design = _field_coverage(card, card_design_fields)
+        if card_design["status"] == "missing":
+            missing_design_packet_link_count += 1
+            missing_card_design_packet_links.append(card_id)
+
+    version_slot_count = len(set(version_slots))
+    model_available = bool(bound_cards)
+    missing_version_slots = max(0, card_version_target - version_slot_count)
+    if not model_available:
+        missing_version_slots = card_version_target
+
+    return {
+        "target": card_version_target,
+        "model_available": model_available,
+        "bound_card_ids": _ids(bound_cards),
+        "fallback_starting_deck_ids": fallback_starting_deck_ids,
+        "version_slot_count": version_slot_count,
+        "version_slots": sorted(set(version_slots)),
+        "missing_version_slots": missing_version_slots,
+        "duplicate_version_slots": duplicate_version_slots,
+        "cards_missing_version_slot": cards_missing_version_slot,
+        "missing_card_art_source_ids": missing_card_art_source_ids,
+        "missing_card_asset_fields": missing_card_asset_fields,
+        "missing_card_design_packet_links": missing_card_design_packet_links,
+        "missing_design_packet_link_count": missing_design_packet_link_count,
+        "missing_asset_reference_count": missing_asset_reference_count,
+    }
+
+
+def _card_version_model(cards: list[dict[str, Any]]) -> dict[str, Any]:
+    cards_by_character: dict[str, list[dict[str, Any]]] = {}
+    character_ref_fields: set[str] = set()
+    version_slot_fields = _observed_fields(cards, CARD_VERSION_SLOT_FIELDS)
+    card_index = {
+        card["id"]: card
+        for card in cards
+        if isinstance(card.get("id"), str)
+    }
+
+    for card in cards:
+        for field in CARD_CHARACTER_REF_FIELDS + CARD_CHARACTER_REF_LIST_FIELDS:
+            if field in card:
+                character_ref_fields.add(field)
+
+        for character_id in _card_character_ids(card):
+            cards_by_character.setdefault(character_id, []).append(card)
+
+    if cards_by_character and version_slot_fields:
+        note = (
+            "character-bound cards and version slot fields found; duplicate "
+            "slots are checked per character"
+        )
+    elif cards_by_character:
+        note = (
+            "character-bound cards found, but no card version slot fields were "
+            "found"
+        )
+    else:
+        note = (
+            "no card character/version fields found; starting_deck refs are "
+            "shown as fallback only"
+        )
+
+    return {
+        "available": bool(cards_by_character),
+        "cards_by_character": cards_by_character,
+        "card_index": card_index,
+        "character_ref_fields": sorted(character_ref_fields),
+        "version_slot_fields": version_slot_fields,
+        "note": note,
+    }
+
+
+def _card_character_ids(card: dict[str, Any]) -> list[str]:
+    character_ids: list[str] = []
+
+    for field in CARD_CHARACTER_REF_FIELDS:
+        value = card.get(field)
+        if isinstance(value, str):
+            character_ids.append(value)
+
+    for field in CARD_CHARACTER_REF_LIST_FIELDS:
+        for value in _list(card.get(field)):
+            if isinstance(value, str):
+                character_ids.append(value)
+
+    return _unique_strings(character_ids)
+
+
+def _card_version_slot(card: dict[str, Any]) -> str | None:
+    for field in CARD_VERSION_SLOT_FIELDS:
+        value = card.get(field)
+        if _has_field_value(value):
+            return str(value)
+    return None
+
+
+def _asset_manifest_report(asset_manifest_path: Path) -> dict[str, Any]:
+    report: dict[str, Any] = {
+        "path": asset_manifest_path.as_posix(),
+        "present": False,
+        "entry_count": 0,
+        "errors": [],
+        "sources": {},
+    }
+
+    if not asset_manifest_path.exists():
+        report["errors"].append("asset manifest not found; asset coverage skipped")
+        return report
+
+    try:
+        with asset_manifest_path.open("r", encoding="utf-8-sig") as handle:
+            document = json.load(handle)
+    except (json.JSONDecodeError, OSError) as exc:
+        report["errors"].append(f"asset manifest could not be read: {exc}")
+        return report
+
+    if not isinstance(document, dict):
+        report["errors"].append("asset manifest root is not an object")
+        return report
+
+    assets = document.get("assets")
+    if not isinstance(assets, list):
+        report["errors"].append("asset manifest has no assets array")
+        return report
+
+    report["present"] = True
+    report["entry_count"] = len(assets)
+    sources: dict[str, list[dict[str, Any]]] = {}
+    for entry in assets:
+        if not isinstance(entry, dict):
+            continue
+        source_id = entry.get("source_id")
+        if not isinstance(source_id, str):
+            continue
+        sources.setdefault(source_id, []).append(
+            {
+                "id": entry.get("id"),
+                "category": entry.get("category"),
+                "path": entry.get("path"),
+                "required": entry.get("required"),
+                "status": entry.get("status"),
+            }
+        )
+    report["sources"] = sources
+    return report
+
+
+def _source_asset_status(
+    asset_manifest: dict[str, Any],
+    source_id: str,
+    categories: list[str],
+) -> dict[str, Any]:
+    if not asset_manifest["present"]:
+        return {
+            "status": "skipped",
+            "source_id": source_id,
+            "categories": categories,
+            "entries": [],
+        }
+
+    entries = [
+        entry
+        for entry in asset_manifest["sources"].get(source_id, [])
+        if entry.get("category") in categories
+    ]
+    return {
+        "status": "present" if entries else "missing",
+        "source_id": source_id,
+        "categories": categories,
+        "entries": entries,
+    }
+
+
+def _field_coverage(row: dict[str, Any], fields: list[str]) -> dict[str, Any]:
+    if not fields:
+        return {"status": "not_configured", "fields": [], "field": None}
+
+    for field in fields:
+        if _has_field_value(row.get(field)):
+            return {"status": "present", "fields": fields, "field": field}
+
+    return {"status": "missing", "fields": fields, "field": None}
+
+
+def _observed_fields(rows: list[dict[str, Any]], fields: tuple[str, ...]) -> list[str]:
+    observed = {
+        field
+        for row in rows
+        for field in fields
+        if field in row
+    }
+    return sorted(observed)
+
+
+def _has_field_value(value: Any) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, list) or isinstance(value, dict):
+        return bool(value)
+    return True
+
+
+def _unique_strings(values: list[Any]) -> list[str]:
+    seen: set[str] = set()
+    unique_values: list[str] = []
+    for value in values:
+        if not isinstance(value, str) or value in seen:
+            continue
+        seen.add(value)
+        unique_values.append(value)
+    return unique_values
+
+
+def _format_roster_issues(summary: dict[str, int]) -> str:
+    issues = []
+    for key, label in (
+        ("missing_faction_slots", "missing faction slot"),
+        ("missing_character_slots", "missing character slot"),
+        ("missing_card_version_slots", "missing card version slot"),
+        ("duplicate_version_slot_count", "duplicate version slot"),
+        ("missing_design_packet_link_count", "missing design packet link"),
+        ("missing_asset_reference_count", "missing asset reference"),
+    ):
+        count = summary[key]
+        if count:
+            issues.append(_pluralize(count, label))
+    return ", ".join(issues) if issues else "no roster gaps found"
+
+
+def _asset_status_label(asset_status: dict[str, Any]) -> str:
+    if asset_status["status"] == "present":
+        return "ok"
+    if asset_status["status"] == "missing":
+        return "missing"
+    return "skipped"
+
+
+def _field_status_label(field_status: dict[str, Any]) -> str:
+    if field_status["status"] == "present":
+        return "ok"
+    if field_status["status"] == "missing":
+        return "missing"
+    return "n/a"
+
+
+def _format_list(values: list[str]) -> str:
+    return ", ".join(values) if values else "none"
+
+
+def _pluralize(count: int, singular: str) -> str:
+    suffix = "" if count == 1 else "s"
+    return f"{count} {singular}{suffix}"
+
+
 def _summarize_validation_errors(errors: list[str]) -> dict[str, Any]:
     missing_references: list[dict[str, str]] = []
     missing_fields: list[dict[str, str]] = []
@@ -507,7 +1246,7 @@ def write_json(report: dict[str, Any], output_path: Path) -> None:
 
 def main() -> int:
     args = parse_args()
-    report = build_report(args.data_root)
+    report = build_report(args.data_root, args.asset_manifest)
 
     if args.json_output is not None:
         write_json(report, args.json_output)
