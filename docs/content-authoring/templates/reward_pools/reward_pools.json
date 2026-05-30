@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../data/schemas/reward_pools.schema.json",
+  "version": 1,
+  "reward_pools": [
+    {
+      "id": "reward_pool.template_basic",
+      "name": "Template Basic Rewards",
+      "entries": [
+        { "kind": "card", "content_id": "card.template_strike", "weight": 3 },
+        { "kind": "skill", "content_id": "skill.template_support", "weight": 1 }
+      ]
+    }
+  ]
+}
