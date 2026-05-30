@@ -99,7 +99,7 @@ func base_effects() -> Array:
 			return [
 				{
 					"type": "apply_status",
-					"status_id": "status.intent_charge",
+					"status_id": "status.guard",
 					"amount": max(1, strength),
 					"duration": 1,
 					"target": TARGET_ENEMY_TEAM
@@ -113,7 +113,7 @@ func base_effects() -> Array:
 			return [
 				{
 					"type": "apply_status",
-					"status_id": "status.intent_debuff",
+					"status_id": "status.weaken",
 					"amount": max(1, strength),
 					"duration": 1,
 					"target": TARGET_PLAYER_TEAM

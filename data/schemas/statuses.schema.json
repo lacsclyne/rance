@@ -13,7 +13,18 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "name", "polarity", "stack_rule", "default_duration", "description"],
+        "required": [
+          "id",
+          "name",
+          "polarity",
+          "stack_rule",
+          "default_duration",
+          "description",
+          "effect_type",
+          "numeric_value",
+          "tick_timing",
+          "expire_timing"
+        ],
         "additionalProperties": false,
         "properties": {
           "id": { "$ref": "#/$defs/contentId" },
@@ -27,7 +38,20 @@
             "enum": ["add", "replace", "intensity"]
           },
           "default_duration": { "type": "integer", "minimum": 0 },
-          "description": { "type": "string", "minLength": 1 }
+          "description": { "type": "string", "minLength": 1 },
+          "effect_type": {
+            "type": "string",
+            "enum": ["damage_over_time", "vulnerable", "weaken", "guard", "seal", "heal_block"]
+          },
+          "numeric_value": { "type": "integer", "minimum": 0 },
+          "tick_timing": {
+            "type": "string",
+            "enum": ["none", "turn_start", "turn_end"]
+          },
+          "expire_timing": {
+            "type": "string",
+            "enum": ["none", "turn_start", "turn_end"]
+          }
         }
       }
     }
