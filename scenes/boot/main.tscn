@@ -1,3 +1,6 @@
-[gd_scene format=3]
+[gd_scene load_steps=2 format=3]
 
-[node name="Main" type="Node"]
+[ext_resource type="Script" path="res://src/boot/app_root.gd" id="1_app_root"]
+
+[node name="AppRoot" type="Node"]
+script = ExtResource("1_app_root")

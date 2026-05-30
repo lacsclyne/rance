@@ -5,8 +5,37 @@ config_version=5
 
 [application]
 
-config/name="rance"
+config/name="Rance"
+config/version="0.1.0"
 run/main_scene="res://scenes/boot/main.tscn"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[audio]
+
+buses/default_bus_layout="res://default_bus_layout.tres"
+driver/mix_rate=48000
+driver/output_latency=15
+
+[input]
+
+confirm={
+"deadzone": 0.5,
+"events": []
+}
+cancel={
+"deadzone": 0.5,
+"events": []
+}
+menu={
+"deadzone": 0.5,
+"events": []
+}
 
 [rendering]
 
