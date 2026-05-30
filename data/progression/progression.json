@@ -1,0 +1,50 @@
+{
+  "$schema": "../schemas/progression.schema.json",
+  "version": 1,
+  "progression_nodes": [
+    {
+      "id": "progression.prologue_start",
+      "name": "Prologue Start",
+      "requires": [],
+      "unlocks": [
+        { "kind": "character", "content_id": "character.iris" },
+        { "kind": "character", "content_id": "character.toma" },
+        { "kind": "encounter", "content_id": "encounter.road_ambush" },
+        { "kind": "quest", "content_id": "quest.secure_crossroad" }
+      ]
+    },
+    {
+      "id": "progression.first_victory",
+      "name": "First Victory",
+      "requires": ["progression.prologue_start"],
+      "unlocks": [
+        { "kind": "character", "content_id": "character.maelle" },
+        { "kind": "card", "content_id": "card.first_aid" },
+        { "kind": "encounter", "content_id": "encounter.burned_shrine" }
+      ]
+    },
+    {
+      "id": "progression.crossroad_secure",
+      "name": "Crossroad Secure",
+      "requires": ["progression.first_victory"],
+      "unlocks": [
+        { "kind": "character", "content_id": "character.ren" },
+        { "kind": "character", "content_id": "character.bram" },
+        { "kind": "skill", "content_id": "skill.command_aura" },
+        { "kind": "encounter", "content_id": "encounter.foundry_gate" },
+        { "kind": "quest", "content_id": "quest.recover_relic" },
+        { "kind": "quest", "content_id": "quest.close_foundry" }
+      ]
+    },
+    {
+      "id": "progression.relic_recovered",
+      "name": "Relic Recovered",
+      "requires": ["progression.crossroad_secure"],
+      "unlocks": [
+        { "kind": "card", "content_id": "card.frost_lance" },
+        { "kind": "card", "content_id": "card.sunder" },
+        { "kind": "skill", "content_id": "skill.cursebreaker" }
+      ]
+    }
+  ]
+}

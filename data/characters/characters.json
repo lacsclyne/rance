@@ -1,0 +1,56 @@
+{
+  "$schema": "../schemas/characters.schema.json",
+  "version": 1,
+  "characters": [
+    {
+      "id": "character.iris",
+      "name": "Iris",
+      "faction_id": "faction.liberation_front",
+      "role": "guardian",
+      "base_stats": { "hp": 44, "attack": 5, "defense": 6, "speed": 4 },
+      "starting_deck": ["card.guard", "card.guard", "card.strike", "card.rally_banner"],
+      "skill_ids": ["skill.shield_wall", "skill.command_aura"],
+      "bio": "Front-line captain for the first patrol route."
+    },
+    {
+      "id": "character.toma",
+      "name": "Toma",
+      "faction_id": "faction.liberation_front",
+      "role": "duelist",
+      "base_stats": { "hp": 36, "attack": 7, "defense": 3, "speed": 7 },
+      "starting_deck": ["card.strike", "card.riposte", "card.quick_step", "card.focus"],
+      "skill_ids": ["skill.duelist_training", "skill.evasive_footwork"],
+      "bio": "Fast attacker who turns defense into counter pressure."
+    },
+    {
+      "id": "character.maelle",
+      "name": "Maelle",
+      "faction_id": "faction.arcane_union",
+      "role": "healer",
+      "base_stats": { "hp": 32, "attack": 4, "defense": 4, "speed": 5 },
+      "starting_deck": ["card.first_aid", "card.focus", "card.guard", "card.spark_bolt"],
+      "skill_ids": ["skill.field_medicine", "skill.cursebreaker"],
+      "bio": "Medic who stabilizes the party between burst turns."
+    },
+    {
+      "id": "character.ren",
+      "name": "Ren",
+      "faction_id": "faction.arcane_union",
+      "role": "caster",
+      "base_stats": { "hp": 30, "attack": 8, "defense": 2, "speed": 6 },
+      "starting_deck": ["card.spark_bolt", "card.frost_lance", "card.focus", "card.quick_step"],
+      "skill_ids": ["skill.arcane_study", "skill.surge_control"],
+      "bio": "Status caster who controls tempo with draw and debuffs."
+    },
+    {
+      "id": "character.bram",
+      "name": "Bram",
+      "faction_id": "faction.liberation_front",
+      "role": "bruiser",
+      "base_stats": { "hp": 40, "attack": 8, "defense": 4, "speed": 3 },
+      "starting_deck": ["card.sunder", "card.strike", "card.guard", "card.rally_banner"],
+      "skill_ids": ["skill.steady_breath", "skill.battle_rhythm"],
+      "bio": "Slow bruiser with efficient attacks and reliable sustain."
+    }
+  ]
+}

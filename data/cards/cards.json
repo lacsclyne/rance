@@ -1,0 +1,133 @@
+{
+  "$schema": "../schemas/cards.schema.json",
+  "version": 1,
+  "cards": [
+    {
+      "id": "card.strike",
+      "name": "Strike",
+      "type": "attack",
+      "rarity": "starter",
+      "cost": 1,
+      "target": "enemy",
+      "tags": ["starter"],
+      "effects": [{ "type": "damage", "amount": 6 }]
+    },
+    {
+      "id": "card.guard",
+      "name": "Guard",
+      "type": "skill",
+      "rarity": "starter",
+      "cost": 1,
+      "target": "self",
+      "tags": ["starter", "defense"],
+      "effects": [
+        { "type": "block", "amount": 7 },
+        { "type": "apply_status", "status_id": "status.block", "amount": 1, "duration": 1 }
+      ]
+    },
+    {
+      "id": "card.spark_bolt",
+      "name": "Spark Bolt",
+      "type": "attack",
+      "rarity": "common",
+      "cost": 1,
+      "target": "enemy",
+      "tags": ["arcane"],
+      "effects": [
+        { "type": "damage", "amount": 5 },
+        { "type": "apply_status", "status_id": "status.burn", "amount": 1, "duration": 2 }
+      ]
+    },
+    {
+      "id": "card.first_aid",
+      "name": "First Aid",
+      "type": "skill",
+      "rarity": "common",
+      "cost": 1,
+      "target": "ally",
+      "tags": ["support"],
+      "effects": [
+        { "type": "heal", "amount": 5 },
+        { "type": "apply_status", "status_id": "status.regeneration", "amount": 1, "duration": 2 }
+      ]
+    },
+    {
+      "id": "card.rally_banner",
+      "name": "Rally Banner",
+      "type": "power",
+      "rarity": "uncommon",
+      "cost": 2,
+      "target": "ally",
+      "tags": ["support"],
+      "effects": [
+        { "type": "draw", "amount": 1 },
+        { "type": "apply_status", "status_id": "status.focus", "amount": 1, "duration": 2 }
+      ]
+    },
+    {
+      "id": "card.riposte",
+      "name": "Riposte",
+      "type": "attack",
+      "rarity": "common",
+      "cost": 1,
+      "target": "enemy",
+      "tags": ["counter"],
+      "effects": [
+        { "type": "block", "amount": 3 },
+        { "type": "damage", "amount": 5 }
+      ]
+    },
+    {
+      "id": "card.frost_lance",
+      "name": "Frost Lance",
+      "type": "attack",
+      "rarity": "uncommon",
+      "cost": 2,
+      "target": "enemy",
+      "tags": ["arcane", "control"],
+      "effects": [
+        { "type": "damage", "amount": 8 },
+        { "type": "apply_status", "status_id": "status.vulnerable", "amount": 1, "duration": 1 }
+      ]
+    },
+    {
+      "id": "card.sunder",
+      "name": "Sunder",
+      "type": "attack",
+      "rarity": "uncommon",
+      "cost": 2,
+      "target": "enemy",
+      "tags": ["heavy"],
+      "effects": [
+        { "type": "damage", "amount": 10 },
+        { "type": "apply_status", "status_id": "status.vulnerable", "amount": 1, "duration": 2 }
+      ]
+    },
+    {
+      "id": "card.focus",
+      "name": "Focus",
+      "type": "skill",
+      "rarity": "common",
+      "cost": 0,
+      "target": "self",
+      "tags": ["tempo"],
+      "effects": [
+        { "type": "draw", "amount": 1 },
+        { "type": "gain_energy", "amount": 1 }
+      ]
+    },
+    {
+      "id": "card.quick_step",
+      "name": "Quick Step",
+      "type": "skill",
+      "rarity": "common",
+      "cost": 0,
+      "target": "self",
+      "tags": ["mobility"],
+      "effects": [
+        { "type": "block", "amount": 3 },
+        { "type": "draw", "amount": 1 }
+      ]
+    }
+  ]
+}

@@ -33,6 +33,10 @@ content, numeric formulas, or art assets.
 | `tools/dev/` | Developer-only scripts and editor helpers. |
 | `tests/` | Automated tests, fixtures, and headless validation helpers. |
 
+Current data contracts and minimal content fixtures are documented in
+[data/README.md](../data/README.md). They are data-only and do not add runtime
+loading or gameplay logic.
+
 ## Module Index
 
 Start at [docs/modules/README.md](modules/README.md), then open the module file

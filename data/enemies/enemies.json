@@ -1,0 +1,33 @@
+{
+  "$schema": "../schemas/enemies.schema.json",
+  "version": 1,
+  "enemies": [
+    {
+      "id": "enemy.bandit_skirmisher",
+      "name": "Bandit Skirmisher",
+      "faction_id": "faction.iron_court",
+      "rank": "minion",
+      "base_stats": { "hp": 22, "attack": 5, "defense": 2, "speed": 6 },
+      "skill_ids": ["skill.evasive_footwork"],
+      "intent_notes": "Alternates light attacks with defensive footwork."
+    },
+    {
+      "id": "enemy.ember_acolyte",
+      "name": "Ember Acolyte",
+      "faction_id": "faction.iron_court",
+      "rank": "elite",
+      "base_stats": { "hp": 28, "attack": 7, "defense": 2, "speed": 4 },
+      "skill_ids": ["skill.surge_control"],
+      "intent_notes": "Applies burn before charging a stronger spell."
+    },
+    {
+      "id": "enemy.iron_hound",
+      "name": "Iron Hound",
+      "faction_id": "faction.iron_court",
+      "rank": "minion",
+      "base_stats": { "hp": 26, "attack": 6, "defense": 3, "speed": 5 },
+      "skill_ids": ["skill.battle_rhythm"],
+      "intent_notes": "Uses repeated pressure to punish slow decks."
+    }
+  ]
+}

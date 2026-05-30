@@ -1,0 +1,30 @@
+{
+  "$schema": "../schemas/quests.schema.json",
+  "version": 1,
+  "quests": [
+    {
+      "id": "quest.secure_crossroad",
+      "name": "Secure the Crossroad",
+      "objective": "Clear the ambush and keep the patrol route open.",
+      "encounter_ids": ["encounter.road_ambush"],
+      "reward_pool_id": "reward_pool.prologue",
+      "progression_reward_id": "progression.first_victory"
+    },
+    {
+      "id": "quest.recover_relic",
+      "name": "Recover the Shrine Relic",
+      "objective": "Defeat the shrine raiders and recover the sealed relic.",
+      "encounter_ids": ["encounter.burned_shrine"],
+      "reward_pool_id": "reward_pool.prologue",
+      "progression_reward_id": "progression.crossroad_secure"
+    },
+    {
+      "id": "quest.close_foundry",
+      "name": "Close the Foundry Gate",
+      "objective": "Break the gate guard before the raiders can regroup.",
+      "encounter_ids": ["encounter.foundry_gate"],
+      "reward_pool_id": "reward_pool.foundry",
+      "progression_reward_id": "progression.relic_recovered"
+    }
+  ]
+}

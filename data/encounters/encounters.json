@@ -1,0 +1,38 @@
+{
+  "$schema": "../schemas/encounters.schema.json",
+  "version": 1,
+  "encounters": [
+    {
+      "id": "encounter.road_ambush",
+      "name": "Road Ambush",
+      "tier": 1,
+      "waves": [
+        { "enemy_id": "enemy.bandit_skirmisher", "count": 2 }
+      ],
+      "reward_pool_id": "reward_pool.prologue",
+      "environment": "forest_road"
+    },
+    {
+      "id": "encounter.burned_shrine",
+      "name": "Burned Shrine",
+      "tier": 1,
+      "waves": [
+        { "enemy_id": "enemy.bandit_skirmisher", "count": 1 },
+        { "enemy_id": "enemy.ember_acolyte", "count": 1 }
+      ],
+      "reward_pool_id": "reward_pool.prologue",
+      "environment": "ruined_shrine"
+    },
+    {
+      "id": "encounter.foundry_gate",
+      "name": "Foundry Gate",
+      "tier": 2,
+      "waves": [
+        { "enemy_id": "enemy.iron_hound", "count": 2 },
+        { "enemy_id": "enemy.ember_acolyte", "count": 1 }
+      ],
+      "reward_pool_id": "reward_pool.foundry",
+      "environment": "outer_foundry"
+    }
+  ]
+}

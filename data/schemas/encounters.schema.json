@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lacsclyne.local/schemas/encounters.schema.json",
+  "title": "Encounter collection",
+  "type": "object",
+  "required": ["version", "encounters"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "encounters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "tier", "waves", "reward_pool_id"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/contentId" },
+          "name": { "type": "string", "minLength": 1 },
+          "tier": { "type": "integer", "minimum": 1 },
+          "waves": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["enemy_id", "count"],
+              "additionalProperties": false,
+              "properties": {
+                "enemy_id": { "$ref": "#/$defs/contentId" },
+                "count": { "type": "integer", "minimum": 1 }
+              }
+            }
+          },
+          "reward_pool_id": { "$ref": "#/$defs/contentId" },
+          "environment": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    }
+  }
+}

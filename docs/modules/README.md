@@ -18,3 +18,9 @@ implementation issues.
 | Resource loading | [resource_loading.md](resource_loading.md) | `src/resource_loading/` |
 | Developer tools | [dev_tools.md](dev_tools.md) | `tools/dev/` |
 | Tests | [tests.md](tests.md) | `tests/` |
+
+## Current Data Contracts
+
+The data-only content foundation lives under `data/`. It provides JSON schemas
+and minimal fixture collections for later Godot import, editor tooling, and
+gameplay prototype tasks. No runtime data loader is implemented yet.

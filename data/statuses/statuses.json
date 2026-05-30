@@ -1,0 +1,54 @@
+{
+  "$schema": "../schemas/statuses.schema.json",
+  "version": 1,
+  "statuses": [
+    {
+      "id": "status.block",
+      "name": "Block",
+      "polarity": "buff",
+      "stack_rule": "add",
+      "default_duration": 1,
+      "description": "Absorbs incoming damage before health is reduced."
+    },
+    {
+      "id": "status.vulnerable",
+      "name": "Vulnerable",
+      "polarity": "debuff",
+      "stack_rule": "replace",
+      "default_duration": 2,
+      "description": "Increases incoming attack damage."
+    },
+    {
+      "id": "status.bleed",
+      "name": "Bleed",
+      "polarity": "debuff",
+      "stack_rule": "add",
+      "default_duration": 3,
+      "description": "Deals damage at the start of the affected unit's turn."
+    },
+    {
+      "id": "status.focus",
+      "name": "Focus",
+      "polarity": "buff",
+      "stack_rule": "intensity",
+      "default_duration": 2,
+      "description": "Improves draw and energy conversion effects."
+    },
+    {
+      "id": "status.burn",
+      "name": "Burn",
+      "polarity": "debuff",
+      "stack_rule": "add",
+      "default_duration": 2,
+      "description": "Deals delayed damage and can be consumed by fire skills."
+    },
+    {
+      "id": "status.regeneration",
+      "name": "Regeneration",
+      "polarity": "buff",
+      "stack_rule": "add",
+      "default_duration": 2,
+      "description": "Restores health at the start of the affected unit's turn."
+    }
+  ]
+}
