@@ -10,6 +10,9 @@ open and run the project without temporary gameplay logic.
   It is scripted by `res://src/ui/ui_shell.gd` and uses
   `res://src/ui/scene_router.gd` for route registration, screen replacement,
   current route lookup, and clearing.
+- `scenes/ui/quest_vertical_slice.tscn`: playable prototype route for the first
+  strategy, quest, formation, combat, reward, and settlement loop.
 
-The UI shell is not the project root scene and does not define final screen
-composition or styling.
+The boot scene instances the UI shell and registers the prototype route so the
+project can be run manually in Godot. The UI still avoids final screen
+composition and styling.
