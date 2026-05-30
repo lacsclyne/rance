@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../../data/schemas/progression.schema.json",
+  "version": 1,
+  "progression_nodes": [
+    {
+      "id": "progression.template_intro_unlock",
+      "name": "Template Intro Unlock",
+      "requires": [],
+      "unlocks": [
+        { "kind": "character", "content_id": "character.template_ally" },
+        { "kind": "encounter", "content_id": "encounter.template_intro" },
+        { "kind": "quest", "content_id": "quest.template_intro" }
+      ]
+    }
+  ]
+}

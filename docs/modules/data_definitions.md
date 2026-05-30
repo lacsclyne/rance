@@ -45,6 +45,12 @@ python tools/dev/validate_content_data.py
 Use `-- --data-root <path>` with the Godot script or `--data-root <path>` with
 the Python fallback for validating copied fixture data.
 
+## Content Authoring
+
+Use [docs/content-authoring/README.md](../content-authoring/README.md) for
+starter templates, required field notes, ID naming rules, reference fields, and
+common validation errors.
+
 ## First Reads for Follow-up Issues
 
 - `docs/project-overview.md`
