@@ -27,7 +27,7 @@ logic, or runtime loaders.
 - Cards: 10
 - Skills: 10
 - Statuses: 6
-- Enemies: 3
+- Enemies: 4
 - Encounters: 3
 - Quests: 3
 - Reward pools: 2
@@ -43,10 +43,10 @@ logic, or runtime loaders.
   matching fixture collection.
 - Status rows include runtime effect metadata (`effect_type`, `numeric_value`,
   `tick_timing`, and `expire_timing`) consumed by the first combat resolver.
-- Card `effects`, skill triggers, status stack rules, enemy intents, encounter
-  waves, quest objectives, reward pool entries, and progression unlocks are
-  declarative descriptors only. Later runtime issues can interpret them without
-  changing the IDs.
+- Card `effects`, skill triggers, status stack rules, enemy notes, encounter
+  intent patterns, encounter waves, quest objectives, reward pool entries, and
+  progression unlocks are declarative descriptors only. Later runtime issues can
+  interpret them without changing the IDs.
 
 Examples:
 

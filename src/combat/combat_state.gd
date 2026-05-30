@@ -3,6 +3,8 @@ extends RefCounted
 
 const ContentDataLoaderScript := preload("res://src/data/content_data_loader.gd")
 const CombatResultScript := preload("res://src/combat/combat_result.gd")
+const EncounterDefinitionScript := preload("res://src/combat/encounter_definition.gd")
+const EnemyIntentScript := preload("res://src/combat/enemy_intent.gd")
 const StatusDefinitionScript := preload("res://src/combat/status_definition.gd")
 const StatusInstanceScript := preload("res://src/combat/status_instance.gd")
 const SupportSlotScript := preload("res://src/combat/support_slot.gd")
@@ -58,6 +60,8 @@ var enemy_support = null
 var status_definitions := {}
 var enemy_actions := []
 var enemy_action_index := 0
+var encounter_definition = null
+var current_enemy_intents := []
 var action_log := []
 
 
@@ -96,6 +100,7 @@ func start_battle(config: Dictionary):
 	var configured_enemy_actions = config.get("enemy_actions", [])
 	if typeof(configured_enemy_actions) == TYPE_ARRAY:
 		enemy_actions = configured_enemy_actions.duplicate(true)
+	encounter_definition = _build_encounter_definition(config)
 
 	action_log.append(
 		"Battle started: player team HP %s/%s, enemy team HP %s/%s, AP max %s."
@@ -139,10 +144,19 @@ func get_snapshot() -> Dictionary:
 		"enemy_max_hp": enemy_max_hp,
 		"player_block": player_block,
 		"enemy_block": enemy_block,
+		"enemy_intents": _enemy_intent_snapshot(),
 		"acted_leader_ids": acted_leader_ids.keys(),
 		"player_statuses": _status_snapshot(TEAM_PLAYER),
 		"enemy_statuses": _status_snapshot(TEAM_ENEMY)
 	}
+
+
+func _enemy_intent_snapshot() -> Array:
+	var snapshot := []
+	for intent in current_enemy_intents:
+		if intent != null and intent.has_method("to_dictionary"):
+			snapshot.append(intent.call("to_dictionary"))
+	return snapshot
 
 
 func is_finished() -> bool:
@@ -250,6 +264,7 @@ func _begin_player_turn() -> void:
 		"Turn %s player phase begins. AP: %s -> %s (+%s, max %s)."
 		% [turn_number, old_ap, player_ap, ap_recovery, max_ap]
 	)
+	_prepare_enemy_intents()
 
 
 func _begin_enemy_turn() -> void:
@@ -269,13 +284,83 @@ func _run_enemy_turn() -> void:
 		)
 		return
 
-	var action := _next_enemy_action()
-	if action.is_empty():
-		action_log.append("Enemy team has no action.")
+	if current_enemy_intents.is_empty():
+		action_log.append("Enemy team has no previewed intent.")
 		return
 
-	action_log.append("Enemy team uses %s." % _skill_name(action))
-	_resolve_skill_effects(action, TEAM_ENEMY, TARGET_PLAYER_TEAM)
+	for intent in current_enemy_intents:
+		if outcome != OUTCOME_ONGOING:
+			return
+		if intent.get("canceled"):
+			action_log.append(
+				"Enemy intent %s was canceled, no action resolves."
+				% _intent_name(intent)
+			)
+			continue
+
+		var action: Dictionary = intent.call("to_skill")
+		action_log.append(
+			"Enemy team resolves intent %s (%s, strength %s)."
+			% [_skill_name(action), intent.get("action_type"), intent.call("effective_strength")]
+		)
+		_resolve_skill_effects(action, TEAM_ENEMY, TARGET_PLAYER_TEAM)
+
+
+func _build_encounter_definition(config: Dictionary):
+	var encounter_config = config.get("encounter_definition", config.get("encounter", {}))
+	if typeof(encounter_config) == TYPE_DICTIONARY and not encounter_config.is_empty():
+		return EncounterDefinitionScript.new(encounter_config)
+
+	var pattern_config = config.get("intent_pattern", {})
+	if typeof(pattern_config) == TYPE_DICTIONARY and not pattern_config.is_empty():
+		return EncounterDefinitionScript.new(
+			{
+				"id": "encounter.inline",
+				"name": "Inline Encounter",
+				"intent_pattern": pattern_config
+			}
+		)
+
+	if not enemy_actions.is_empty():
+		return EncounterDefinitionScript.from_enemy_actions(enemy_actions)
+	return EncounterDefinitionScript.default_encounter()
+
+
+func _prepare_enemy_intents() -> void:
+	current_enemy_intents.clear()
+	if encounter_definition == null:
+		encounter_definition = EncounterDefinitionScript.default_encounter()
+
+	var tokens: Array = encounter_definition.call("intents_for_turn", turn_number, _intent_context())
+	for token in tokens:
+		current_enemy_intents.append(EnemyIntentScript.new(token))
+
+	if current_enemy_intents.is_empty():
+		action_log.append("Enemy intent preview: none.")
+		return
+
+	for intent in current_enemy_intents:
+		action_log.append(
+			"Enemy intent preview: %s (%s, strength %s, target %s, defendable %s, interruptible %s)."
+			% [
+				_intent_name(intent),
+				intent.get("action_type"),
+				intent.get("strength"),
+				intent.get("target_scope"),
+				_bool_label(bool(intent.get("defendable"))),
+				_bool_label(bool(intent.get("interruptible")))
+			]
+		)
+
+
+func _intent_context() -> Dictionary:
+	return {
+		"turn_number": turn_number,
+		"player_hp": player_hp,
+		"player_max_hp": player_max_hp,
+		"enemy_hp": enemy_hp,
+		"enemy_max_hp": enemy_max_hp
+	}
 
 
 func _next_enemy_action() -> Dictionary:
@@ -321,15 +406,14 @@ func _resolve_effect(effect: Dictionary, skill: Dictionary, source_team: String,
 			_apply_heal(target_team, amount)
 		"block", "defense", "damage_reduction":
 			_apply_block(target_team, amount)
+			if source_team == TEAM_PLAYER:
+				_apply_defense_to_pending_intent(effect)
 		"apply_status", "status":
 			_apply_status(target_team, effect)
 		"remove_status", "clear_status":
 			_remove_status(target_team, effect)
 		"interrupt":
-			action_log.append(
-				"Interrupt placeholder: %s attempts an interrupt effect."
-				% _team_label(source_team)
-			)
+			_apply_interrupt(source_team, effect)
 		"gain_ap", "gain_energy":
 			_gain_ap(source_team, amount)
 		"draw":
@@ -416,6 +500,50 @@ func _apply_block(target_team: String, amount: int) -> void:
 		var old_enemy_block := enemy_block
 		enemy_block += amount
 		action_log.append("Defense: enemy team block %s -> %s (+%s)." % [old_enemy_block, enemy_block, amount])
+
+
+func _apply_interrupt(source_team: String, effect: Dictionary) -> void:
+	if source_team != TEAM_PLAYER:
+		action_log.append("Interrupt: enemy interrupt effects are ignored by this player intent model.")
+		return
+
+	var intent = _first_pending_intent("interruptible")
+	if intent == null:
+		action_log.append("Interrupt: no interruptible enemy intent is pending.")
+		return
+
+	if effect.has("reduce_multiplier") or effect.has("multiplier"):
+		var old_multiplier := float(intent.get("strength_multiplier"))
+		var multiplier := float(effect.get("reduce_multiplier", effect.get("multiplier", 1.0)))
+		intent.call("reduce_multiplier", multiplier, "interrupt")
+		action_log.append(
+			"Intent: %s strength multiplier %.2f -> %.2f after interrupt."
+			% [_intent_name(intent), old_multiplier, float(intent.get("strength_multiplier"))]
+		)
+		if intent.get("canceled"):
+			action_log.append("Intent: %s was canceled by interrupt." % _intent_name(intent))
+		return
+
+	intent.call("cancel", "interrupt")
+	action_log.append("Intent: %s was canceled by interrupt." % _intent_name(intent))
+
+
+func _apply_defense_to_pending_intent(effect: Dictionary) -> void:
+	if not effect.has("intent_multiplier") and not effect.has("intent_reduce_multiplier"):
+		return
+
+	var intent = _first_pending_intent("defendable")
+	if intent == null:
+		action_log.append("Intent: no defendable enemy intent is pending.")
+		return
+
+	var old_multiplier := float(intent.get("strength_multiplier"))
+	var multiplier := float(effect.get("intent_multiplier", effect.get("intent_reduce_multiplier", 1.0)))
+	intent.call("reduce_multiplier", multiplier, "defense")
+	action_log.append(
+		"Intent: %s strength multiplier %.2f -> %.2f after defense."
+		% [_intent_name(intent), old_multiplier, float(intent.get("strength_multiplier"))]
+	)
 
 
 func _apply_status(target_team: String, effect: Dictionary) -> void:
@@ -581,6 +709,32 @@ func _team_label(team: String) -> String:
 	if team == TEAM_PLAYER:
 		return "player team"
 	return "enemy team"
+
+
+func _first_pending_intent(flag: String):
+	for intent in current_enemy_intents:
+		if intent == null:
+			continue
+		if bool(intent.get("canceled")):
+			continue
+		if bool(intent.get(flag)):
+			return intent
+	return null
+
+
+func _intent_name(intent) -> String:
+	if intent == null:
+		return "unknown intent"
+	var intent_name := str(intent.get("name"))
+	if not intent_name.is_empty():
+		return intent_name
+	return str(intent.get("id"))
+
+
+func _bool_label(value: bool) -> String:
+	if value:
+		return "yes"
+	return "no"
 
 
 func _load_status_definitions(config: Dictionary) -> void:
@@ -778,4 +932,6 @@ func _reset() -> void:
 	status_definitions.clear()
 	enemy_actions.clear()
 	enemy_action_index = 0
+	encounter_definition = null
+	current_enemy_intents.clear()
 	action_log.clear()

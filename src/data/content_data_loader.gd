@@ -111,6 +111,9 @@ const ENUMS := {
 	"effect_type": ["damage", "block", "heal", "draw", "apply_status", "gain_energy"],
 	"skill_trigger": ["battle_start", "turn_start", "card_played", "on_damage", "active"],
 	"enemy_rank": ["minion", "elite", "boss"],
+	"intent_action_type": ["attack", "big_attack", "charge", "buff", "debuff", "heal", "defense", "custom"],
+	"intent_target_scope": ["player_team", "enemy_team", "self", "enemy", "all_enemies", "all_players"],
+	"intent_condition_type": ["enemy_hp_at_or_below", "player_hp_at_or_below", "turn_at_least"],
 	"reward_kind": ["card", "skill"],
 	"unlock_kind": ["character", "card", "skill", "encounter", "quest"]
 }
@@ -370,6 +373,7 @@ func _validate_row_shape(table_key: String, row: Dictionary, file_path: String, 
 			_validate_integer_min_field(row, file_path, row_id, "tier", 1, errors)
 			_validate_waves(row, file_path, row_id, errors)
 			_validate_optional_string(row, file_path, row_id, "environment", errors)
+			_validate_intent_pattern(row, file_path, row_id, errors)
 		"progression_nodes":
 			_validate_non_empty_string(row, file_path, row_id, "name", errors)
 			_validate_string_array(row, file_path, row_id, "requires", errors, false)
@@ -450,6 +454,143 @@ func _validate_waves(row: Dictionary, file_path: String, row_id: String, errors:
 		_require_fields(wave, ["enemy_id", "count"], file_path, row_id, field_path, errors)
 		_validate_string_value(wave.get("enemy_id"), file_path, row_id, "%s.enemy_id" % field_path, errors)
 		_validate_integer_min_value(wave.get("count"), file_path, row_id, "%s.count" % field_path, 1, errors)
+
+
+func _validate_intent_pattern(row: Dictionary, file_path: String, row_id: String, errors: Array) -> void:
+	if not row.has("intent_pattern"):
+		return
+
+	var pattern = row["intent_pattern"]
+	if typeof(pattern) != TYPE_DICTIONARY:
+		_add_error(errors, file_path, row_id, "intent_pattern", "expected object")
+		return
+
+	if pattern.has("rotation"):
+		_validate_intent_entries(pattern["rotation"], file_path, row_id, "intent_pattern.rotation", errors)
+
+	if pattern.has("conditional"):
+		var conditional = pattern["conditional"]
+		if typeof(conditional) != TYPE_ARRAY:
+			_add_error(errors, file_path, row_id, "intent_pattern.conditional", "expected array")
+		else:
+			for index in range(conditional.size()):
+				var entry = conditional[index]
+				var field_path := "intent_pattern.conditional[%s]" % index
+				if typeof(entry) != TYPE_DICTIONARY:
+					_add_error(errors, file_path, row_id, field_path, "expected object")
+					continue
+				_require_fields(entry, ["condition", "intents"], file_path, row_id, field_path, errors)
+				if entry.has("condition"):
+					_validate_intent_condition(entry["condition"], file_path, row_id, "%s.condition" % field_path, errors)
+				if entry.has("intents"):
+					_validate_intent_entries(entry["intents"], file_path, row_id, "%s.intents" % field_path, errors)
+
+	if pattern.has("key_turns"):
+		var key_turns = pattern["key_turns"]
+		if typeof(key_turns) != TYPE_ARRAY:
+			_add_error(errors, file_path, row_id, "intent_pattern.key_turns", "expected array")
+		else:
+			for index in range(key_turns.size()):
+				var entry = key_turns[index]
+				var field_path := "intent_pattern.key_turns[%s]" % index
+				if typeof(entry) != TYPE_DICTIONARY:
+					_add_error(errors, file_path, row_id, field_path, "expected object")
+					continue
+				_require_fields(entry, ["turn", "intents"], file_path, row_id, field_path, errors)
+				if entry.has("turn"):
+					_validate_integer_min_value(entry["turn"], file_path, row_id, "%s.turn" % field_path, 1, errors)
+				if entry.has("intents"):
+					_validate_intent_entries(entry["intents"], file_path, row_id, "%s.intents" % field_path, errors)
+
+
+func _validate_intent_entries(value, file_path: String, row_id: String, field_path: String, errors: Array) -> void:
+	if typeof(value) != TYPE_ARRAY:
+		_add_error(errors, file_path, row_id, field_path, "expected array")
+		return
+
+	for index in range(value.size()):
+		var entry = value[index]
+		var entry_path := "%s[%s]" % [field_path, index]
+		if typeof(entry) != TYPE_DICTIONARY:
+			_add_error(errors, file_path, row_id, entry_path, "expected object")
+			continue
+		if entry.has("intents"):
+			_validate_intent_entries(entry["intents"], file_path, row_id, "%s.intents" % entry_path, errors)
+		else:
+			_validate_intent_token(entry, file_path, row_id, entry_path, errors)
+
+
+func _validate_intent_token(token: Dictionary, file_path: String, row_id: String, field_path: String, errors: Array) -> void:
+	_require_fields(
+		token,
+		["id", "name", "action_type", "strength", "target_scope", "defendable", "interruptible"],
+		file_path,
+		row_id,
+		field_path,
+		errors
+	)
+	if token.has("id"):
+		_validate_string_value(token["id"], file_path, row_id, "%s.id" % field_path, errors)
+		if typeof(token["id"]) == TYPE_STRING and not _matches_regex(str(token["id"]), ID_PATTERN):
+			_add_error(errors, file_path, row_id, "%s.id" % field_path, "must match <kind>.<name> lowercase ID format")
+	if token.has("name"):
+		_validate_non_empty_string(token, file_path, row_id, "name", errors, field_path)
+	if token.has("action_type"):
+		_validate_enum_value(token["action_type"], file_path, row_id, "%s.action_type" % field_path, ENUMS["intent_action_type"], errors)
+	if token.has("strength"):
+		_validate_integer_min_value(token["strength"], file_path, row_id, "%s.strength" % field_path, 0, errors)
+	if token.has("target_scope"):
+		_validate_enum_value(token["target_scope"], file_path, row_id, "%s.target_scope" % field_path, ENUMS["intent_target_scope"], errors)
+	if token.has("defendable"):
+		_validate_bool_value(token["defendable"], file_path, row_id, "%s.defendable" % field_path, errors)
+	if token.has("interruptible"):
+		_validate_bool_value(token["interruptible"], file_path, row_id, "%s.interruptible" % field_path, errors)
+	if token.has("source_id"):
+		_validate_string_value(token["source_id"], file_path, row_id, "%s.source_id" % field_path, errors)
+	if token.has("effects"):
+		_validate_intent_effects(token["effects"], file_path, row_id, "%s.effects" % field_path, errors)
+
+
+func _validate_intent_effects(value, file_path: String, row_id: String, field_path: String, errors: Array) -> void:
+	if typeof(value) != TYPE_ARRAY:
+		_add_error(errors, file_path, row_id, field_path, "expected array")
+		return
+
+	for index in range(value.size()):
+		var effect = value[index]
+		var effect_path := "%s[%s]" % [field_path, index]
+		if typeof(effect) != TYPE_DICTIONARY:
+			_add_error(errors, file_path, row_id, effect_path, "expected object")
+			continue
+		_require_fields(effect, ["type"], file_path, row_id, effect_path, errors)
+		if effect.has("type"):
+			_validate_string_value(effect["type"], file_path, row_id, "%s.type" % effect_path, errors)
+		if effect.has("amount"):
+			_validate_integer_min_value(effect["amount"], file_path, row_id, "%s.amount" % effect_path, 0, errors)
+		if effect.has("duration"):
+			_validate_integer_min_value(effect["duration"], file_path, row_id, "%s.duration" % effect_path, 1, errors)
+		if effect.has("target"):
+			_validate_string_value(effect["target"], file_path, row_id, "%s.target" % effect_path, errors)
+		if effect.has("status_id"):
+			_validate_string_value(effect["status_id"], file_path, row_id, "%s.status_id" % effect_path, errors)
+
+
+func _validate_intent_condition(condition, file_path: String, row_id: String, field_path: String, errors: Array) -> void:
+	if typeof(condition) != TYPE_DICTIONARY:
+		_add_error(errors, file_path, row_id, field_path, "expected object")
+		return
+
+	_require_fields(condition, ["type"], file_path, row_id, field_path, errors)
+	if condition.has("type"):
+		_validate_enum_value(condition["type"], file_path, row_id, "%s.type" % field_path, ENUMS["intent_condition_type"], errors)
+	if condition.has("value"):
+		_validate_integer_min_value(condition["value"], file_path, row_id, "%s.value" % field_path, 0, errors)
+	if condition.has("amount"):
+		_validate_integer_min_value(condition["amount"], file_path, row_id, "%s.amount" % field_path, 0, errors)
+	if condition.has("percent"):
+		_validate_number_min_value(condition["percent"], file_path, row_id, "%s.percent" % field_path, 0.0, errors)
+	if condition.has("turn"):
+		_validate_integer_min_value(condition["turn"], file_path, row_id, "%s.turn" % field_path, 1, errors)
 
 
 func _validate_unlocks(row: Dictionary, file_path: String, row_id: String, errors: Array) -> void:
@@ -692,6 +833,23 @@ func _validate_integer_min_value(value, file_path: String, row_id: String, field
 	return true
 
 
+func _validate_number_min_value(value, file_path: String, row_id: String, field: String, minimum: float, errors: Array) -> bool:
+	if not _is_number_value(value):
+		_add_error(errors, file_path, row_id, field, "expected number")
+		return false
+	if float(value) < minimum:
+		_add_error(errors, file_path, row_id, field, "must be >= %s" % minimum)
+		return false
+	return true
+
+
+func _validate_bool_value(value, file_path: String, row_id: String, field: String, errors: Array) -> bool:
+	if typeof(value) != TYPE_BOOL:
+		_add_error(errors, file_path, row_id, field, "expected boolean")
+		return false
+	return true
+
+
 func _validate_ref_field(
 	row: Dictionary,
 	file_path: String,
@@ -801,6 +959,11 @@ func _is_integer_value(value) -> bool:
 	if value_type == TYPE_FLOAT:
 		return value == floor(value)
 	return false
+
+
+func _is_number_value(value) -> bool:
+	var value_type := typeof(value)
+	return value_type == TYPE_INT or value_type == TYPE_FLOAT
 
 
 func _matches_regex(value: String, pattern: String) -> bool:
