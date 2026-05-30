@@ -1,0 +1,18 @@
+{
+  "$schema": "../schemas/reward_pools.schema.json",
+  "version": 1,
+  "reward_pools": [
+    {
+      "id": "reward_pool.prologue",
+      "name": "Prologue Rewards",
+      "entries": [
+        { "kind": "card", "content_id": "card.spark_bolt", "weight": 3 },
+        { "kind": "card", "content_id": "card.first_aid", "weight": 3 },
+        { "kind": "card", "content_id": "card.riposte", "weight": 2 },
+        { "kind": "card", "content_id": "card.frost_lance", "weight": 1 },
+        { "kind": "skill", "content_id": "skill.field_medicine", "weight": 1 },
+        { "kind": "skill", "content_id": "skill.arcane_study", "weight": 1 }
+      ]
+    }
+  ]
+}

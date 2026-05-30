@@ -1,0 +1,28 @@
+{
+  "$schema": "../schemas/campaign.schema.json",
+  "version": 1,
+  "campaigns": [
+    {
+      "id": "campaign.prologue",
+      "name": "Prologue: Ash Road",
+      "summary": "A short patrol route that introduces one party, three battles, two quests, and the first unlock gates.",
+      "entry_character_ids": ["character.iris", "character.toma"],
+      "acts": [
+        {
+          "id": "act.prologue",
+          "name": "Ash Road Patrol",
+          "progression_gate_id": "progression.prologue_start",
+          "encounter_ids": [
+            "encounter.road_ambush",
+            "encounter.burned_shrine",
+            "encounter.foundry_gate"
+          ],
+          "quest_ids": [
+            "quest.secure_crossroad",
+            "quest.recover_relic"
+          ]
+        }
+      ]
+    }
+  ]
+}

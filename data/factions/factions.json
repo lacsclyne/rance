@@ -1,0 +1,27 @@
+{
+  "$schema": "../schemas/factions.schema.json",
+  "version": 1,
+  "factions": [
+    {
+      "id": "faction.liberation_front",
+      "name": "Liberation Front",
+      "alignment": "ally",
+      "color": "#3B82F6",
+      "summary": "Volunteer defenders who favor flexible decks and protection."
+    },
+    {
+      "id": "faction.arcane_union",
+      "name": "Arcane Union",
+      "alignment": "neutral",
+      "color": "#8B5CF6",
+      "summary": "Scholars and mages focused on status manipulation and draw."
+    },
+    {
+      "id": "faction.iron_court",
+      "name": "Iron Court",
+      "alignment": "enemy",
+      "color": "#B45309",
+      "summary": "Militarized raiders using pressure, burn, and attrition."
+    }
+  ]
+}

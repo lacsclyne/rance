@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lacsclyne.local/schemas/reward_pools.schema.json",
+  "title": "Reward pool collection",
+  "type": "object",
+  "required": ["version", "reward_pools"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "reward_pools": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "entries"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/contentId" },
+          "name": { "type": "string", "minLength": 1 },
+          "entries": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["kind", "content_id", "weight"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["card", "skill"]
+                },
+                "content_id": { "$ref": "#/$defs/contentId" },
+                "weight": { "type": "integer", "minimum": 1 }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    }
+  }
+}

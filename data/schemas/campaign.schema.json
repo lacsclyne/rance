@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lacsclyne.local/schemas/campaign.schema.json",
+  "title": "Campaign collection",
+  "type": "object",
+  "required": ["version", "campaigns"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "campaigns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "entry_character_ids", "acts"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/contentId" },
+          "name": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string" },
+          "entry_character_ids": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/contentId" },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "acts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "name", "encounter_ids", "quest_ids"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "$ref": "#/$defs/contentId" },
+                "name": { "type": "string", "minLength": 1 },
+                "progression_gate_id": { "$ref": "#/$defs/contentId" },
+                "encounter_ids": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/contentId" },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "quest_ids": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/contentId" },
+                  "uniqueItems": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    }
+  }
+}

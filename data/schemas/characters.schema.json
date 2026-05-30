@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lacsclyne.local/schemas/characters.schema.json",
+  "title": "Character collection",
+  "type": "object",
+  "required": ["version", "characters"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "characters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "faction_id", "role", "base_stats", "starting_deck", "skill_ids"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/contentId" },
+          "name": { "type": "string", "minLength": 1 },
+          "faction_id": { "$ref": "#/$defs/contentId" },
+          "role": { "type": "string", "minLength": 1 },
+          "base_stats": { "$ref": "#/$defs/stats" },
+          "starting_deck": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/contentId" },
+            "minItems": 1
+          },
+          "skill_ids": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/contentId" },
+            "uniqueItems": true
+          },
+          "bio": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "stats": {
+      "type": "object",
+      "required": ["hp", "attack", "defense", "speed"],
+      "additionalProperties": false,
+      "properties": {
+        "hp": { "type": "integer", "minimum": 1 },
+        "attack": { "type": "integer", "minimum": 0 },
+        "defense": { "type": "integer", "minimum": 0 },
+        "speed": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
