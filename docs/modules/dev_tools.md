@@ -10,6 +10,9 @@ and local validation commands.
 - `tools/dev/`
 - Future editor-only scripts may be placed under a documented Godot editor
   tools path if a later issue creates one.
+- Future Linux and Web export presets should be added only after the exact
+  target settings are validated and kept free of local paths, secrets, and
+  generated binaries.
 
 ## Key Scene and Resource Paths
 
@@ -24,6 +27,18 @@ and local validation commands.
 - Do not add runtime dependencies from game code to `tools/dev/`.
 - Do not introduce third-party plugins or large binaries without a dedicated
   issue.
+- Do not commit exported builds, Godot export templates, or other generated
+  artifacts; local export smoke checks write under ignored `build/`.
+
+## Current Local Checks
+
+```sh
+python tools/dev/validate_build_export.py
+```
+
+This validates the committed `Windows Desktop` export preset when Godot and the
+matching export templates are installed. Missing Godot or templates should be
+reported as clear local setup messages rather than committed workarounds.
 
 ## First Reads for Follow-up Issues
 
