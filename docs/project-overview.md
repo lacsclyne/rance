@@ -30,7 +30,7 @@ content, numeric formulas, or art assets.
 | `src/` | GDScript source, grouped by module. |
 | `data/` | Versioned content tables and declarative data files. |
 | `resources/` | Godot `.tres` or `.res` resources shared by modules. |
-| `assets/` | Source media such as art, audio, fonts, and references. |
+| `assets/` | Source media such as art, audio, fonts, references, and the asset manifest. |
 | `docs/modules/` | Implementation index documents for each module. |
 | `docs/requests/` | Preserved historical request notes. |
 | `tools/dev/` | Developer-only scripts and editor helpers. |
@@ -72,6 +72,8 @@ that matches the issue scope.
   `strategy_map_screen.tscn`.
 - Keep data IDs stable, lowercase, and namespaced by module when data schemas
   are introduced.
+- Keep asset IDs stable, lowercase, and namespaced by manifest category, such as
+  `card_art.spark_bolt` or `ui.card_frame`.
 - Avoid abbreviations unless the abbreviated term is already used in Godot.
 
 ## Documentation Rule

@@ -43,6 +43,9 @@ jobs:
       - name: Validate content data with Python
         run: python tools/dev/validate_content_data.py
 
+      - name: Validate asset manifest
+        run: python tools/dev/validate_asset_manifest.py
+
       - name: Set up Godot
         uses: chickensoft-games/setup-godot@v2
         with:
