@@ -26,6 +26,7 @@
             "type": "string",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           },
+          "icon_asset_id": { "$ref": "#/$defs/assetId" },
           "summary": { "type": "string" }
         }
       }
@@ -33,6 +34,10 @@
   },
   "$defs": {
     "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "assetId": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
     }

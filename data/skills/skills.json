@@ -6,6 +6,7 @@
       "id": "skill.duelist_training",
       "name": "Duelist Training",
       "trigger": "card_played",
+      "icon_asset_id": "skill_icon.duelist_training",
       "description": "First attack each turn deals extra damage.",
       "numeric_value": 2
     },
@@ -13,6 +14,7 @@
       "id": "skill.field_medicine",
       "name": "Field Medicine",
       "trigger": "turn_start",
+      "icon_asset_id": "skill_icon.field_medicine",
       "description": "Restore a small amount of health to the lowest-health ally.",
       "status_ids": ["status.guard"],
       "numeric_value": 2
@@ -21,6 +23,7 @@
       "id": "skill.arcane_study",
       "name": "Arcane Study",
       "trigger": "battle_start",
+      "icon_asset_id": "skill_icon.arcane_study",
       "description": "Begin battle with guard for a safer opening.",
       "status_ids": ["status.guard"],
       "numeric_value": 1
@@ -29,6 +32,7 @@
       "id": "skill.shield_wall",
       "name": "Shield Wall",
       "trigger": "battle_start",
+      "icon_asset_id": "skill_icon.shield_wall",
       "description": "Start battle with bonus block.",
       "status_ids": ["status.guard"],
       "numeric_value": 5
@@ -37,6 +41,7 @@
       "id": "skill.battle_rhythm",
       "name": "Battle Rhythm",
       "trigger": "card_played",
+      "icon_asset_id": "skill_icon.battle_rhythm",
       "description": "Every third card grants block.",
       "status_ids": ["status.guard"],
       "numeric_value": 3
@@ -45,6 +50,7 @@
       "id": "skill.surge_control",
       "name": "Surge Control",
       "trigger": "active",
+      "icon_asset_id": "skill_icon.surge_control",
       "description": "Convert an opening into direct damage and weaken pressure.",
       "status_ids": ["status.weaken"],
       "numeric_value": 4
@@ -53,6 +59,7 @@
       "id": "skill.steady_breath",
       "name": "Steady Breath",
       "trigger": "turn_start",
+      "icon_asset_id": "skill_icon.steady_breath",
       "description": "Gain a small guard buffer when below half health.",
       "status_ids": ["status.guard"],
       "numeric_value": 2
@@ -61,6 +68,7 @@
       "id": "skill.evasive_footwork",
       "name": "Evasive Footwork",
       "trigger": "on_damage",
+      "icon_asset_id": "skill_icon.evasive_footwork",
       "description": "Gain block after taking damage.",
       "status_ids": ["status.guard"],
       "numeric_value": 3
@@ -69,6 +77,7 @@
       "id": "skill.command_aura",
       "name": "Command Aura",
       "trigger": "turn_start",
+      "icon_asset_id": "skill_icon.command_aura",
       "description": "Grant guard to the party leader target.",
       "status_ids": ["status.guard"],
       "numeric_value": 1
@@ -77,6 +86,7 @@
       "id": "skill.cursebreaker",
       "name": "Cursebreaker",
       "trigger": "active",
+      "icon_asset_id": "skill_icon.cursebreaker",
       "description": "Remove one debuff and grant guard.",
       "status_ids": ["status.vulnerable", "status.bleed", "status.guard"],
       "numeric_value": 1

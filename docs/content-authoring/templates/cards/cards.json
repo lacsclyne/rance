@@ -9,6 +9,7 @@
       "rarity": "starter",
       "cost": 1,
       "target": "enemy",
+      "card_art_asset_id": "card_art.template_strike",
       "tags": ["starter", "template"],
       "effects": [
         { "type": "damage", "amount": 6 },
@@ -22,6 +23,7 @@
       "rarity": "starter",
       "cost": 1,
       "target": "self",
+      "card_art_asset_id": "card_art.template_guard",
       "tags": ["starter", "template"],
       "effects": [
         { "type": "block", "amount": 6 },

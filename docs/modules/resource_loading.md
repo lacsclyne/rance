@@ -48,6 +48,10 @@ metadata reserved for a future loader service.
 `res://` paths, and stores manifest fields such as category, status, required,
 and source ID as metadata. It does not define a second manifest format.
 
+Content rows reference manifest entries by stable asset ID fields such as
+`portrait_asset_id`, `card_art_asset_id`, `icon_asset_id`, and
+`background_asset_id`; they do not store asset file paths.
+
 ## Interface Boundaries
 
 - Provides loading services and typed handles; it does not own the meaning of

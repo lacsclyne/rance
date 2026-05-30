@@ -25,8 +25,9 @@ stable IDs used by gameplay modules.
 - `ContentDataLoader` reads JSON from `res://data/`, validates the first content
   contract, and returns raw dictionaries plus ID indexes for consumers.
 - Loader validation covers required fields, ID uniqueness, cross-table
-  references, enum values, and basic numeric ranges. It does not interpret
-  declarative effect, quest, progression, or reward behavior.
+  references, asset manifest references, enum values, and basic numeric ranges.
+  It does not interpret declarative effect, quest, progression, or reward
+  behavior.
 
 ## Developer Validation
 

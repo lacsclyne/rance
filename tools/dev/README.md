@@ -12,7 +12,7 @@ godot --headless --path . --script tools/dev/validate_content_data.gd
 ```
 
 This calls `src/data/content_data_loader.gd` and validates the JSON fixtures in
-`res://data/`.
+`res://data/`, including optional content-to-asset manifest references.
 
 Fallback for workstations or CI runners without a Godot binary:
 
@@ -23,6 +23,9 @@ python tools/dev/validate_content_data.py
 Both commands report failures with file, content ID, field, and reason. Use
 `-- --data-root <path>` with the Godot script or `--data-root <path>` with the
 Python script to validate a copied or generated data directory.
+
+Use `--asset-manifest <path>` when validating against a non-default copy of
+`assets/asset_manifest.json`.
 
 ## Build Export Validation
 

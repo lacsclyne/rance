@@ -2,6 +2,7 @@ class_name ContentDataLoader
 extends RefCounted
 
 const DEFAULT_DATA_ROOT := "res://data"
+const DEFAULT_ASSET_MANIFEST_PATH := "res://assets/asset_manifest.json"
 const ID_PATTERN := "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
 const COLOR_PATTERN := "^#[0-9A-Fa-f]{6}$"
 
@@ -140,8 +141,15 @@ const CONTENT_LABELS := {
 	"campaigns": "campaign"
 }
 
+const ASSET_REFERENCE_FIELDS := {
+	"factions": {"field": "icon_asset_id", "category": "faction_icon"},
+	"cards": {"field": "card_art_asset_id", "category": "card_art"},
+	"skills": {"field": "icon_asset_id", "category": "skill_icon"},
+	"characters": {"field": "portrait_asset_id", "category": "portrait"},
+	"encounters": {"field": "background_asset_id", "category": "encounter_background"}
+}
 
-func load_and_validate(data_root: String = DEFAULT_DATA_ROOT) -> Dictionary:
+func load_and_validate(data_root: String = DEFAULT_DATA_ROOT, asset_manifest_path: String = DEFAULT_ASSET_MANIFEST_PATH) -> Dictionary:
 	var load_result := load_content(data_root)
 	if not load_result["ok"]:
 		return {
@@ -151,7 +159,7 @@ func load_and_validate(data_root: String = DEFAULT_DATA_ROOT) -> Dictionary:
 			"errors": load_result["errors"]
 		}
 
-	return validate_content(load_result["data"], load_result["files"])
+	return validate_content(load_result["data"], load_result["files"], asset_manifest_path)
 
 
 func load_content(data_root: String = DEFAULT_DATA_ROOT) -> Dictionary:
@@ -206,7 +214,7 @@ func load_content(data_root: String = DEFAULT_DATA_ROOT) -> Dictionary:
 	}
 
 
-func validate_content(content: Dictionary, files: Dictionary = {}) -> Dictionary:
+func validate_content(content: Dictionary, files: Dictionary = {}, asset_manifest_path: String = DEFAULT_ASSET_MANIFEST_PATH) -> Dictionary:
 	var errors := []
 	var indexes := {}
 	var all_ids := {}
@@ -215,7 +223,24 @@ func validate_content(content: Dictionary, files: Dictionary = {}) -> Dictionary
 		indexes[table["key"]] = {}
 		_validate_collection_shape(table, content, files, indexes, all_ids, errors)
 
-	_validate_references(content, files, indexes, errors)
+	var asset_manifest := {
+		"ok": true,
+		"asset_categories": {},
+		"errors": []
+	}
+	if _has_asset_references(content):
+		asset_manifest = _load_asset_manifest_categories(asset_manifest_path)
+		if not asset_manifest["ok"]:
+			errors.append_array(asset_manifest["errors"])
+
+	_validate_references(
+		content,
+		files,
+		indexes,
+		asset_manifest["asset_categories"],
+		asset_manifest["ok"],
+		errors
+	)
 
 	return {
 		"ok": errors.is_empty(),
@@ -387,6 +412,9 @@ func _validate_row_shape(table_key: String, row: Dictionary, file_path: String, 
 			_validate_optional_string(row, file_path, row_id, "summary", errors)
 			_validate_string_array(row, file_path, row_id, "entry_character_ids", errors, false)
 			_validate_acts(row, file_path, row_id, errors)
+
+	if ASSET_REFERENCE_FIELDS.has(table_key):
+		_validate_optional_string(row, file_path, row_id, ASSET_REFERENCE_FIELDS[table_key]["field"], errors)
 
 
 func _validate_card_effects(row: Dictionary, file_path: String, row_id: String, errors: Array) -> void:
@@ -639,7 +667,16 @@ func _validate_acts(row: Dictionary, file_path: String, row_id: String, errors: 
 			_validate_string_value(act["progression_gate_id"], file_path, row_id, "%s.progression_gate_id" % field_path, errors)
 
 
-func _validate_references(content: Dictionary, files: Dictionary, indexes: Dictionary, errors: Array) -> void:
+func _validate_references(
+	content: Dictionary,
+	files: Dictionary,
+	indexes: Dictionary,
+	asset_categories: Dictionary,
+	asset_manifest_loaded: bool,
+	errors: Array
+) -> void:
+	_validate_asset_references(content, files, asset_categories, asset_manifest_loaded, errors)
+
 	for row in _rows(content, "cards"):
 		var file_path := _file_for(files, "cards")
 		var row_id := _row_label(row, 0)
@@ -721,6 +758,135 @@ func _validate_references(content: Dictionary, files: Dictionary, indexes: Dicti
 			_validate_ref_array(act, file_path, row_id, "quest_ids", "quests", indexes, errors, "acts[%s]" % index)
 			if act.has("progression_gate_id"):
 				_validate_ref_value(act["progression_gate_id"], file_path, row_id, "acts[%s].progression_gate_id" % index, "progression_nodes", indexes, errors)
+
+
+func _load_asset_manifest_categories(manifest_path: String) -> Dictionary:
+	var errors := []
+	var asset_categories := {}
+
+	if not FileAccess.file_exists(manifest_path):
+		_add_error(errors, manifest_path, "<file>", "<file>", "missing asset manifest")
+		return {
+			"ok": false,
+			"asset_categories": asset_categories,
+			"errors": errors
+		}
+
+	var file := FileAccess.open(manifest_path, FileAccess.READ)
+	if file == null:
+		_add_error(errors, manifest_path, "<file>", "<file>", "could not open file, error %s" % FileAccess.get_open_error())
+		return {
+			"ok": false,
+			"asset_categories": asset_categories,
+			"errors": errors
+		}
+
+	var json := JSON.new()
+	var parse_error := json.parse(file.get_as_text())
+	if parse_error != OK:
+		_add_error(
+			errors,
+			manifest_path,
+			"<json>",
+			"<json>",
+			"parse error at line %s: %s" % [json.get_error_line(), json.get_error_message()]
+		)
+		return {
+			"ok": false,
+			"asset_categories": asset_categories,
+			"errors": errors
+		}
+
+	if typeof(json.data) != TYPE_DICTIONARY:
+		_add_error(errors, manifest_path, "<file>", "<root>", "expected JSON object")
+		return {
+			"ok": false,
+			"asset_categories": asset_categories,
+			"errors": errors
+		}
+
+	var document: Dictionary = json.data
+	if typeof(document.get("assets")) != TYPE_ARRAY:
+		_add_error(errors, manifest_path, "<file>", "assets", "missing or invalid assets array")
+		return {
+			"ok": false,
+			"asset_categories": asset_categories,
+			"errors": errors
+		}
+
+	for entry in document["assets"]:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		if typeof(entry.get("id")) == TYPE_STRING and typeof(entry.get("category")) == TYPE_STRING:
+			asset_categories[str(entry["id"])] = str(entry["category"])
+
+	return {
+		"ok": true,
+		"asset_categories": asset_categories,
+		"errors": []
+	}
+
+
+func _has_asset_references(content: Dictionary) -> bool:
+	for table_key in ASSET_REFERENCE_FIELDS.keys():
+		var field: String = ASSET_REFERENCE_FIELDS[table_key]["field"]
+		for row in _rows(content, table_key):
+			if typeof(row) == TYPE_DICTIONARY and row.has(field):
+				return true
+	return false
+
+
+func _validate_asset_references(
+	content: Dictionary,
+	files: Dictionary,
+	asset_categories: Dictionary,
+	asset_manifest_loaded: bool,
+	errors: Array
+) -> void:
+	if not asset_manifest_loaded:
+		return
+
+	for table_key in ASSET_REFERENCE_FIELDS.keys():
+		var spec: Dictionary = ASSET_REFERENCE_FIELDS[table_key]
+		var file_path := _file_for(files, table_key)
+		for row in _rows(content, table_key):
+			_validate_asset_ref_field(
+				row,
+				file_path,
+				_row_label(row, 0),
+				spec["field"],
+				spec["category"],
+				asset_categories,
+				errors
+			)
+
+
+func _validate_asset_ref_field(
+	row: Dictionary,
+	file_path: String,
+	row_id: String,
+	field: String,
+	expected_category: String,
+	asset_categories: Dictionary,
+	errors: Array
+) -> void:
+	if not row.has(field) or typeof(row[field]) != TYPE_STRING:
+		return
+
+	var asset_id := str(row[field])
+	if not asset_categories.has(asset_id):
+		_add_error(errors, file_path, row_id, field, "unknown asset id '%s'" % asset_id)
+		return
+
+	var category := str(asset_categories[asset_id])
+	if category != expected_category:
+		_add_error(
+			errors,
+			file_path,
+			row_id,
+			field,
+			"expected asset category '%s', got '%s'" % [expected_category, category]
+		)
 
 
 func _require_fields(target: Dictionary, fields: Array, file_path: String, row_id: String, prefix: String, errors: Array) -> void:

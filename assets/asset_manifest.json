@@ -82,6 +82,22 @@
       "source_id": "card.quick_step"
     },
     {
+      "id": "card_art.template_strike",
+      "category": "card_art",
+      "path": "assets/card_art/template_strike.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.template_strike"
+    },
+    {
+      "id": "card_art.template_guard",
+      "category": "card_art",
+      "path": "assets/card_art/template_guard.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.template_guard"
+    },
+    {
       "id": "portrait.iris",
       "category": "portrait",
       "path": "assets/portraits/iris.png",
@@ -122,6 +138,14 @@
       "source_id": "character.bram"
     },
     {
+      "id": "portrait.template_ally",
+      "category": "portrait",
+      "path": "assets/portraits/template_ally.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "character.template_ally"
+    },
+    {
       "id": "faction_icon.liberation_front",
       "category": "faction_icon",
       "path": "assets/icons/factions/liberation_front.png",
@@ -144,6 +168,22 @@
       "required": false,
       "status": "placeholder",
       "source_id": "faction.iron_court"
+    },
+    {
+      "id": "faction_icon.template_allies",
+      "category": "faction_icon",
+      "path": "assets/icons/factions/template_allies.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "faction.template_allies"
+    },
+    {
+      "id": "faction_icon.template_opponents",
+      "category": "faction_icon",
+      "path": "assets/icons/factions/template_opponents.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "faction.template_opponents"
     },
     {
       "id": "skill_icon.duelist_training",
@@ -226,6 +266,22 @@
       "source_id": "skill.cursebreaker"
     },
     {
+      "id": "skill_icon.template_support",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/template_support.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.template_support"
+    },
+    {
+      "id": "skill_icon.template_pressure",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/template_pressure.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.template_pressure"
+    },
+    {
       "id": "encounter_background.road_ambush",
       "category": "encounter_background",
       "path": "assets/backgrounds/encounters/road_ambush.png",
@@ -248,6 +304,14 @@
       "required": false,
       "status": "placeholder",
       "source_id": "encounter.foundry_gate"
+    },
+    {
+      "id": "encounter_background.template_intro",
+      "category": "encounter_background",
+      "path": "assets/backgrounds/encounters/template_intro.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "encounter.template_intro"
     },
     {
       "id": "ui.title_logo",
