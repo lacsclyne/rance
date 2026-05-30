@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../../data/schemas/statuses.schema.json",
+  "version": 1,
+  "statuses": [
+    {
+      "id": "status.template_guard",
+      "name": "Template Guard",
+      "polarity": "buff",
+      "stack_rule": "add",
+      "default_duration": 1,
+      "description": "Generic defensive status placeholder.",
+      "effect_type": "guard",
+      "numeric_value": 2,
+      "tick_timing": "none",
+      "expire_timing": "turn_start"
+    },
+    {
+      "id": "status.template_mark",
+      "name": "Template Mark",
+      "polarity": "debuff",
+      "stack_rule": "replace",
+      "default_duration": 2,
+      "description": "Generic vulnerability status placeholder.",
+      "effect_type": "vulnerable",
+      "numeric_value": 25,
+      "tick_timing": "none",
+      "expire_timing": "turn_end"
+    }
+  ]
+}

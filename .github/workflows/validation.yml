@@ -1,0 +1,69 @@
+name: Repository Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate repository
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whitespace errors
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            git diff --check \
+              "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}"
+          elif [[ "${{ github.event.before }}" =~ ^0+$ ]]; then
+            git diff --check "${{ github.sha }}^!"
+          else
+            git diff --check "${{ github.event.before }}" "${{ github.sha }}"
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Validate content data with Python
+        run: python tools/dev/validate_content_data.py
+
+      - name: Validate asset manifest
+        run: python tools/dev/validate_asset_manifest.py
+
+      - name: Set up Godot
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.6.3
+          use-dotnet: false
+          include-templates: false
+
+      - name: Verify Godot
+        run: godot --version
+
+      - name: Validate content data with Godot
+        run: godot --headless --path . --script tools/dev/validate_content_data.gd
+
+      - name: Run cards and characters domain test
+        run: godot --headless --path . --script tests/cards_characters_domain_test.gd
+
+      - name: Run combat minimal test
+        run: godot --headless --path . --script tests/test_combat_minimal.gd
+
+      - name: Run quest graph minimal test
+        run: godot --headless --path . --script tests/test_quest_graph_minimal.gd

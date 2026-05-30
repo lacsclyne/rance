@@ -1,0 +1,22 @@
+{
+  "$schema": "../../../../data/schemas/skills.schema.json",
+  "version": 1,
+  "skills": [
+    {
+      "id": "skill.template_support",
+      "name": "Template Support",
+      "trigger": "turn_start",
+      "description": "Generic support skill placeholder.",
+      "status_ids": ["status.template_guard"],
+      "numeric_value": 1
+    },
+    {
+      "id": "skill.template_pressure",
+      "name": "Template Pressure",
+      "trigger": "active",
+      "description": "Generic opposing skill placeholder.",
+      "status_ids": ["status.template_mark"],
+      "numeric_value": 1
+    }
+  ]
+}

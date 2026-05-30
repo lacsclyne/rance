@@ -4,6 +4,9 @@ This directory contains versioned, data-only fixtures for the first content
 contract pass. It does not include Godot scenes, scripts, UI, save code, combat
 logic, or runtime loaders.
 
+For new content authoring, start with the guide and starter templates in
+[docs/content-authoring/](../docs/content-authoring/README.md).
+
 ## Layout
 
 - `schemas/`: JSON Schema documents for each fixture collection.

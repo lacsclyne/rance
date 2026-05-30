@@ -25,14 +25,23 @@ and local validation commands.
 - Do not introduce third-party plugins or large binaries without a dedicated
   issue.
 
-## Current Validation Commands
-
-- `python tools/dev/validate_content_data.py`
-- `python tools/dev/validate_asset_manifest.py`
-
 ## First Reads for Follow-up Issues
 
 - `docs/project-overview.md`
 - `docs/modules/tests.md`
 - `tools/README.md`
 - `tools/dev/README.md`
+
+## Current Commands
+
+- Validate content fixtures with Godot:
+  `godot --headless --path . --script tools/dev/validate_content_data.gd`
+- Validate content fixtures without Godot:
+  `python tools/dev/validate_content_data.py`
+- Validate the placeholder-safe asset manifest:
+  `python tools/dev/validate_asset_manifest.py`
+- Report content inventory counts, summaries, placeholder strings, and
+  validation-derived missing references:
+  `python tools/dev/content_inventory_report.py`
+- Write the inventory report as JSON:
+  `python tools/dev/content_inventory_report.py --json-output content-inventory.json`

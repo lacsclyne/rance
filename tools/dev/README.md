@@ -35,3 +35,20 @@ python tools/dev/validate_asset_manifest.py
 The validator checks `assets/asset_manifest.json` for required fields,
 duplicate IDs, category/path naming consistency, and file existence only for
 entries marked `required: true`. Placeholder entries may point to future files.
+
+## Content Inventory Report
+
+Generate a readable content inventory and validation summary:
+
+```sh
+python tools/dev/content_inventory_report.py
+```
+
+Write the same report as JSON for other tools:
+
+```sh
+python tools/dev/content_inventory_report.py --json-output content-inventory.json
+```
+
+Use `--data-root <path>` to scan another data directory and `--strict` to return
+a non-zero exit code when validation errors are present.
