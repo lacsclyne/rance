@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../../data/schemas/endings.schema.json",
+  "version": 1,
+  "endings": [
+    {
+      "id": "ending.template_route_clear",
+      "name": "Template Route Clear",
+      "campaign_id": "campaign.template_intro",
+      "priority": 100,
+      "exclusive_group": "template_primary_outcome",
+      "requirements": {
+        "mode": "all",
+        "completed_quest_ids": ["quest.template_intro"],
+        "required_progression_ids": ["progression.template_intro_unlock"],
+        "required_flags": ["flag.template_deadline_warning_seen"],
+        "blocked_flags": ["flag.template_route_lost"],
+        "character_state": [
+          {
+            "character_id": "character.template_ally",
+            "state": "alive"
+          }
+        ],
+        "faction_state": [
+          {
+            "faction_id": "faction.template_allies",
+            "standing_at_least": 1
+          }
+        ]
+      },
+      "related_faction_ids": [
+        "faction.template_allies",
+        "faction.template_opponents"
+      ],
+      "related_character_ids": ["character.template_ally"],
+      "discovery": {
+        "set_flags": ["flag.ending_template_route_clear_seen"],
+        "carryover_progression_ids": ["progression.template_intro_unlock"],
+        "notes": "Record any future multi-run discovery behavior here."
+      },
+      "presentation": {
+        "title": "Template Route Clear",
+        "subtitle": "A concise result label for ending menus.",
+        "body": "Draft the ending copy here before a final narrative pass.",
+        "art_id": "ending.template_route_clear",
+        "music_id": "music.template_result"
+      }
+    }
+  ]
+}

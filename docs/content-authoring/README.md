@@ -21,11 +21,10 @@ image tracked through the asset manifest.
 | Enemies | `data/enemies/enemies.json` | `data/schemas/enemies.schema.json` | [enemies/enemies.json](templates/enemies/enemies.json) |
 | Encounters | `data/encounters/encounters.json` | `data/schemas/encounters.schema.json` | [encounters/encounters.json](templates/encounters/encounters.json) |
 | Quests | `data/quests/quests.json` | `data/schemas/quests.schema.json` | [quests/quests.json](templates/quests/quests.json) |
+| Campaign events | `data/events/events.json` | `data/schemas/events.schema.json` | [events/events.json](templates/events/events.json) |
+| Endings | `data/endings/endings.json` | `data/schemas/endings.schema.json` | [endings/endings.json](templates/endings/endings.json) |
 | Reward pools | `data/reward_pools/reward_pools.json` | `data/schemas/reward_pools.schema.json` | [reward_pools/reward_pools.json](templates/reward_pools/reward_pools.json) |
 | Progression nodes | `data/progression/progression.json` | `data/schemas/progression.schema.json` | [progression/progression.json](templates/progression/progression.json) |
-
-There is no ending content template yet because the repository does not have an
-ending schema or fixture collection yet.
 
 ## Authoring Flow
 
@@ -67,8 +66,10 @@ final names, final art, or final balance values.
   underscores, for example `card.example_strike`.
 - The `<kind>` prefix must match the collection: `card.`, `character.`,
   `enemy.`, `encounter.`, `faction.`, `quest.`, `reward_pool.`, `skill.`,
-  `status.`, `progression.`, or `campaign.`.
+  `status.`, `progression.`, `campaign.`, `event.`, or `ending.`.
 - Campaign act IDs use `act.<name>`. Encounter intent IDs use `intent.<name>`.
+- Campaign flag IDs use `flag.<name>`. Front condition IDs use `front.<name>`
+  until a dedicated front content collection exists.
 - IDs must be unique across all loaded content files.
 - Keep IDs stable after other content references them.
 
@@ -88,6 +89,8 @@ must contain at least one row.
 | Enemies | `id`, `name`, `faction_id`, `rank`, `base_stats`, `skill_ids` |
 | Encounters | `id`, `name`, `tier`, `waves`, `reward_pool_id` |
 | Quests | `id`, `name`, `objective`, `encounter_ids`, `reward_pool_id` |
+| Campaign events | `id`, `name`, `campaign_id`, `trigger`, `presentation` |
+| Endings | `id`, `name`, `campaign_id`, `priority`, `requirements`, `related_faction_ids`, `related_character_ids`, `discovery`, `presentation` |
 | Reward pools | `id`, `name`, `entries` |
 | Progression nodes | `id`, `name`, `requires`, `unlocks` |
 
@@ -117,6 +120,34 @@ be at least `1`; the other stat values must be at least `0`.
 | `campaigns[].acts[].encounter_ids[]` | `encounter.*` |
 | `campaigns[].acts[].quest_ids[]` | `quest.*` |
 | `campaigns[].acts[].progression_gate_id` | `progression.*` when present |
+| `events[].campaign_id` | `campaign.*` |
+| `events[].trigger.faction_state[].faction_id` | `faction.*` |
+| `events[].trigger.quest_state[].quest_id` | `quest.*` |
+| `events[].trigger.character_state[].character_id` | `character.*` |
+| `events[].effects.available_quest_ids[]` | `quest.*` |
+| `events[].effects.unlock_progression_ids[]` | `progression.*` |
+| `endings[].campaign_id` | `campaign.*` |
+| `endings[].requirements.completed_quest_ids[]` | `quest.*` |
+| `endings[].requirements.failed_quest_ids[]` | `quest.*` |
+| `endings[].requirements.required_progression_ids[]` | `progression.*` |
+| `endings[].requirements.blocked_progression_ids[]` | `progression.*` |
+| `endings[].requirements.faction_state[].faction_id` | `faction.*` |
+| `endings[].requirements.character_state[].character_id` | `character.*` |
+| `endings[].related_faction_ids[]` | `faction.*` |
+| `endings[].related_character_ids[]` | `character.*` |
+| `endings[].discovery.carryover_progression_ids[]` | `progression.*` |
+
+## Events and Endings
+
+Event `trigger` blocks support `mode`, `turn`, `faction_state`,
+`front_state`, `quest_state`, `character_state`, `required_flags`, and
+`blocked_flags`. Use `turn.deadline_turn` for designer-authored campaign
+deadlines, and use `blocked_flags` to avoid replaying one-time warnings.
+
+Ending rows should use `priority` to order competing endings. Use
+`exclusive_group` when only one ending from a family can be selected. Put
+multi-run discovery outputs in `discovery.set_flags` and durable unlock hooks in
+`discovery.carryover_progression_ids`.
 
 ## Asset Reference Fields
 

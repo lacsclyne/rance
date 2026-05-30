@@ -86,6 +86,18 @@ TABLES = [
         "array": "campaigns",
         "id_prefix": "campaign.",
     },
+    {
+        "key": "events",
+        "file": "events/events.json",
+        "array": "events",
+        "id_prefix": "event.",
+    },
+    {
+        "key": "endings",
+        "file": "endings/endings.json",
+        "array": "endings",
+        "id_prefix": "ending.",
+    },
 ]
 
 REQUIRED_FIELDS = {
@@ -111,6 +123,18 @@ REQUIRED_FIELDS = {
     "progression_nodes": ["id", "name", "requires", "unlocks"],
     "quests": ["id", "name", "objective", "encounter_ids", "reward_pool_id"],
     "campaigns": ["id", "name", "entry_character_ids", "acts"],
+    "events": ["id", "name", "campaign_id", "trigger", "presentation"],
+    "endings": [
+        "id",
+        "name",
+        "campaign_id",
+        "priority",
+        "requirements",
+        "related_faction_ids",
+        "related_character_ids",
+        "discovery",
+        "presentation",
+    ],
 }
 
 ENUMS = {
@@ -130,6 +154,11 @@ ENUMS = {
     "intent_condition_type": ["enemy_hp_at_or_below", "player_hp_at_or_below", "turn_at_least"],
     "reward_kind": ["card", "skill"],
     "unlock_kind": ["character", "card", "skill", "encounter", "quest"],
+    "condition_mode": ["all", "any"],
+    "faction_condition_state": ["allied", "neutral", "hostile", "destroyed"],
+    "front_control": ["ally", "contested", "enemy"],
+    "quest_condition_state": ["locked", "available", "active", "completed", "failed"],
+    "character_condition_state": ["alive", "dead", "available", "unavailable"],
 }
 
 KIND_TARGETS = {
@@ -152,6 +181,8 @@ CONTENT_LABELS = {
     "progression_nodes": "progression node",
     "quests": "quest",
     "campaigns": "campaign",
+    "events": "event",
+    "endings": "ending",
 }
 
 ASSET_REFERENCE_FIELDS = {
@@ -400,6 +431,23 @@ class ContentValidator:
             self._validate_optional_string(row, file_path, row_id, "summary")
             self._validate_string_array(row, file_path, row_id, "entry_character_ids")
             self._validate_acts(row, file_path, row_id)
+        elif table_key == "events":
+            self._validate_non_empty_string(row, file_path, row_id, "name")
+            self._validate_string_value(row.get("campaign_id"), file_path, row_id, "campaign_id")
+            self._validate_optional_string(row, file_path, row_id, "summary")
+            self._validate_event_trigger(row, file_path, row_id)
+            self._validate_event_effects(row, file_path, row_id)
+            self._validate_presentation(row, file_path, row_id, "presentation", ["title", "body"])
+        elif table_key == "endings":
+            self._validate_non_empty_string(row, file_path, row_id, "name")
+            self._validate_string_value(row.get("campaign_id"), file_path, row_id, "campaign_id")
+            self._validate_int_min_field(row, file_path, row_id, "priority", 0)
+            self._validate_optional_string(row, file_path, row_id, "exclusive_group")
+            self._validate_string_array(row, file_path, row_id, "related_faction_ids")
+            self._validate_string_array(row, file_path, row_id, "related_character_ids")
+            self._validate_ending_requirements(row, file_path, row_id)
+            self._validate_ending_discovery(row, file_path, row_id)
+            self._validate_presentation(row, file_path, row_id, "presentation", ["title", "body"], ["subtitle"])
 
         if table_key in ASSET_REFERENCE_FIELDS:
             field, _category = ASSET_REFERENCE_FIELDS[table_key]
@@ -624,6 +672,195 @@ class ContentValidator:
             if "progression_gate_id" in act:
                 self._validate_string_value(act["progression_gate_id"], file_path, row_id, f"{field}.progression_gate_id")
 
+    def _validate_event_trigger(self, row: dict[str, Any], file_path: Path, row_id: str) -> None:
+        if "trigger" not in row:
+            return
+        trigger = row["trigger"]
+        if not isinstance(trigger, dict):
+            self._error(file_path, row_id, "trigger", "expected object")
+            return
+
+        if "mode" in trigger:
+            self._validate_enum_value(trigger["mode"], file_path, row_id, "trigger.mode", ENUMS["condition_mode"])
+        if "turn" in trigger:
+            self._validate_turn_condition(trigger["turn"], file_path, row_id, "trigger.turn")
+
+        self._validate_faction_conditions(trigger, file_path, row_id, "faction_state", "trigger")
+        self._validate_front_conditions(trigger, file_path, row_id, "front_state", "trigger")
+        self._validate_quest_conditions(trigger, file_path, row_id, "quest_state", "trigger")
+        self._validate_character_conditions(trigger, file_path, row_id, "character_state", "trigger")
+        self._validate_prefixed_id_array(trigger, file_path, row_id, "required_flags", "flag.", "trigger")
+        self._validate_prefixed_id_array(trigger, file_path, row_id, "blocked_flags", "flag.", "trigger")
+
+    def _validate_event_effects(self, row: dict[str, Any], file_path: Path, row_id: str) -> None:
+        if "effects" not in row:
+            return
+        effects = row["effects"]
+        if not isinstance(effects, dict):
+            self._error(file_path, row_id, "effects", "expected object")
+            return
+
+        self._validate_prefixed_id_array(effects, file_path, row_id, "set_flags", "flag.", "effects")
+        self._validate_prefixed_id_array(effects, file_path, row_id, "clear_flags", "flag.", "effects")
+        self._validate_string_array(effects, file_path, row_id, "available_quest_ids", "effects")
+        self._validate_string_array(effects, file_path, row_id, "unlock_progression_ids", "effects")
+
+    def _validate_ending_requirements(self, row: dict[str, Any], file_path: Path, row_id: str) -> None:
+        if "requirements" not in row:
+            return
+        requirements = row["requirements"]
+        if not isinstance(requirements, dict):
+            self._error(file_path, row_id, "requirements", "expected object")
+            return
+
+        if "mode" in requirements:
+            self._validate_enum_value(requirements["mode"], file_path, row_id, "requirements.mode", ENUMS["condition_mode"])
+        self._validate_string_array(requirements, file_path, row_id, "completed_quest_ids", "requirements")
+        self._validate_string_array(requirements, file_path, row_id, "failed_quest_ids", "requirements")
+        self._validate_string_array(requirements, file_path, row_id, "required_progression_ids", "requirements")
+        self._validate_string_array(requirements, file_path, row_id, "blocked_progression_ids", "requirements")
+        self._validate_prefixed_id_array(requirements, file_path, row_id, "required_flags", "flag.", "requirements")
+        self._validate_prefixed_id_array(requirements, file_path, row_id, "blocked_flags", "flag.", "requirements")
+        self._validate_character_conditions(requirements, file_path, row_id, "character_state", "requirements")
+        self._validate_faction_conditions(requirements, file_path, row_id, "faction_state", "requirements")
+
+    def _validate_ending_discovery(self, row: dict[str, Any], file_path: Path, row_id: str) -> None:
+        if "discovery" not in row:
+            return
+        discovery = row["discovery"]
+        if not isinstance(discovery, dict):
+            self._error(file_path, row_id, "discovery", "expected object")
+            return
+
+        self._validate_prefixed_id_array(discovery, file_path, row_id, "set_flags", "flag.", "discovery")
+        self._validate_string_array(discovery, file_path, row_id, "carryover_progression_ids", "discovery")
+        if "notes" in discovery:
+            self._validate_string_value(discovery["notes"], file_path, row_id, "discovery.notes")
+
+    def _validate_presentation(
+        self,
+        row: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        field: str,
+        required_fields: list[str],
+        optional_fields: list[str] | None = None,
+    ) -> None:
+        if field not in row:
+            return
+        presentation = row[field]
+        if not isinstance(presentation, dict):
+            self._error(file_path, row_id, field, "expected object")
+            return
+
+        self._require_fields(presentation, required_fields, file_path, row_id, field)
+        for text_field in required_fields:
+            if text_field in presentation:
+                self._validate_non_empty_string(presentation, file_path, row_id, text_field, field)
+        for text_field in optional_fields or []:
+            if text_field in presentation:
+                self._validate_string_value(presentation[text_field], file_path, row_id, f"{field}.{text_field}")
+        for id_field in ("art_id", "music_id"):
+            if id_field in presentation:
+                self._validate_string_value(presentation[id_field], file_path, row_id, f"{field}.{id_field}")
+
+    def _validate_turn_condition(self, value: Any, file_path: Path, row_id: str, field: str) -> None:
+        if not isinstance(value, dict):
+            self._error(file_path, row_id, field, "expected object")
+            return
+        for int_field in ("at", "at_least", "before", "deadline_turn"):
+            if int_field in value:
+                minimum = 1
+                self._validate_int_min(value[int_field], file_path, row_id, f"{field}.{int_field}", minimum)
+
+    def _validate_faction_conditions(
+        self,
+        target: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        field: str,
+        prefix: str,
+    ) -> None:
+        entries = self._array_value_with_prefix(target, file_path, row_id, field, prefix)
+        for index, entry in enumerate(entries):
+            entry_field = f"{prefix}.{field}[{index}]"
+            if not isinstance(entry, dict):
+                self._error(file_path, row_id, entry_field, "expected object")
+                continue
+            self._require_fields(entry, ["faction_id"], file_path, row_id, entry_field)
+            if "faction_id" in entry:
+                self._validate_string_value(entry["faction_id"], file_path, row_id, f"{entry_field}.faction_id")
+            if "state" in entry:
+                self._validate_enum_value(entry["state"], file_path, row_id, f"{entry_field}.state", ENUMS["faction_condition_state"])
+            for int_field in ("standing_at_least", "standing_at_most"):
+                if int_field in entry and not self._is_int(entry[int_field]):
+                    self._error(file_path, row_id, f"{entry_field}.{int_field}", "expected integer")
+
+    def _validate_front_conditions(
+        self,
+        target: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        field: str,
+        prefix: str,
+    ) -> None:
+        entries = self._array_value_with_prefix(target, file_path, row_id, field, prefix)
+        for index, entry in enumerate(entries):
+            entry_field = f"{prefix}.{field}[{index}]"
+            if not isinstance(entry, dict):
+                self._error(file_path, row_id, entry_field, "expected object")
+                continue
+            self._require_fields(entry, ["front_id"], file_path, row_id, entry_field)
+            if "front_id" in entry:
+                self._validate_prefixed_id_value(entry["front_id"], file_path, row_id, f"{entry_field}.front_id", "front.")
+            if "control" in entry:
+                self._validate_enum_value(entry["control"], file_path, row_id, f"{entry_field}.control", ENUMS["front_control"])
+            for int_field in ("pressure_at_least", "pressure_at_most"):
+                if int_field in entry:
+                    self._validate_int_min(entry[int_field], file_path, row_id, f"{entry_field}.{int_field}", 0)
+            if "deadline_turn" in entry:
+                self._validate_int_min(entry["deadline_turn"], file_path, row_id, f"{entry_field}.deadline_turn", 1)
+
+    def _validate_quest_conditions(
+        self,
+        target: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        field: str,
+        prefix: str,
+    ) -> None:
+        entries = self._array_value_with_prefix(target, file_path, row_id, field, prefix)
+        for index, entry in enumerate(entries):
+            entry_field = f"{prefix}.{field}[{index}]"
+            if not isinstance(entry, dict):
+                self._error(file_path, row_id, entry_field, "expected object")
+                continue
+            self._require_fields(entry, ["quest_id", "state"], file_path, row_id, entry_field)
+            if "quest_id" in entry:
+                self._validate_string_value(entry["quest_id"], file_path, row_id, f"{entry_field}.quest_id")
+            if "state" in entry:
+                self._validate_enum_value(entry["state"], file_path, row_id, f"{entry_field}.state", ENUMS["quest_condition_state"])
+
+    def _validate_character_conditions(
+        self,
+        target: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        field: str,
+        prefix: str,
+    ) -> None:
+        entries = self._array_value_with_prefix(target, file_path, row_id, field, prefix)
+        for index, entry in enumerate(entries):
+            entry_field = f"{prefix}.{field}[{index}]"
+            if not isinstance(entry, dict):
+                self._error(file_path, row_id, entry_field, "expected object")
+                continue
+            self._require_fields(entry, ["character_id", "state"], file_path, row_id, entry_field)
+            if "character_id" in entry:
+                self._validate_string_value(entry["character_id"], file_path, row_id, f"{entry_field}.character_id")
+            if "state" in entry:
+                self._validate_enum_value(entry["state"], file_path, row_id, f"{entry_field}.state", ENUMS["character_condition_state"])
+
     def _validate_references(self) -> None:
         self._validate_asset_references()
 
@@ -699,6 +936,52 @@ class ContentValidator:
                 self._validate_ref_array(act, file_path, row_id, "quest_ids", "quests", prefix)
                 if "progression_gate_id" in act:
                     self._validate_ref(act["progression_gate_id"], file_path, row_id, f"{prefix}.progression_gate_id", "progression_nodes")
+
+        for row in self._rows("events"):
+            file_path = self.files["events"]
+            row_id = self._row_label(row, 0)
+            self._validate_ref_field(row, file_path, row_id, "campaign_id", "campaigns")
+            trigger = row.get("trigger")
+            if isinstance(trigger, dict):
+                self._validate_condition_refs(trigger, file_path, row_id, "trigger")
+            effects = row.get("effects")
+            if isinstance(effects, dict):
+                self._validate_ref_array(effects, file_path, row_id, "available_quest_ids", "quests", "effects")
+                self._validate_ref_array(effects, file_path, row_id, "unlock_progression_ids", "progression_nodes", "effects")
+
+        for row in self._rows("endings"):
+            file_path = self.files["endings"]
+            row_id = self._row_label(row, 0)
+            self._validate_ref_field(row, file_path, row_id, "campaign_id", "campaigns")
+            self._validate_ref_array(row, file_path, row_id, "related_faction_ids", "factions")
+            self._validate_ref_array(row, file_path, row_id, "related_character_ids", "characters")
+            requirements = row.get("requirements")
+            if isinstance(requirements, dict):
+                self._validate_ref_array(requirements, file_path, row_id, "completed_quest_ids", "quests", "requirements")
+                self._validate_ref_array(requirements, file_path, row_id, "failed_quest_ids", "quests", "requirements")
+                self._validate_ref_array(requirements, file_path, row_id, "required_progression_ids", "progression_nodes", "requirements")
+                self._validate_ref_array(requirements, file_path, row_id, "blocked_progression_ids", "progression_nodes", "requirements")
+                self._validate_condition_refs(requirements, file_path, row_id, "requirements")
+            discovery = row.get("discovery")
+            if isinstance(discovery, dict):
+                self._validate_ref_array(discovery, file_path, row_id, "carryover_progression_ids", "progression_nodes", "discovery")
+
+    def _validate_condition_refs(
+        self,
+        target: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        prefix: str,
+    ) -> None:
+        for index, entry in enumerate(self._list_or_empty(target, "faction_state")):
+            if isinstance(entry, dict) and "faction_id" in entry:
+                self._validate_ref(entry["faction_id"], file_path, row_id, f"{prefix}.faction_state[{index}].faction_id", "factions")
+        for index, entry in enumerate(self._list_or_empty(target, "quest_state")):
+            if isinstance(entry, dict) and "quest_id" in entry:
+                self._validate_ref(entry["quest_id"], file_path, row_id, f"{prefix}.quest_state[{index}].quest_id", "quests")
+        for index, entry in enumerate(self._list_or_empty(target, "character_state")):
+            if isinstance(entry, dict) and "character_id" in entry:
+                self._validate_ref(entry["character_id"], file_path, row_id, f"{prefix}.character_state[{index}].character_id", "characters")
 
     def _validate_asset_references(self) -> None:
         if not self._asset_manifest_loaded:
@@ -901,6 +1184,56 @@ class ContentValidator:
             self._error(file_path, row_id, field, "expected array")
             return []
         return row[field]
+
+    def _array_value_with_prefix(
+        self,
+        row: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        field: str,
+        prefix: str,
+    ) -> list[Any]:
+        if field not in row:
+            return []
+        field_path = self._field(prefix, field)
+        if not isinstance(row[field], list):
+            self._error(file_path, row_id, field_path, "expected array")
+            return []
+        return row[field]
+
+    def _validate_prefixed_id_array(
+        self,
+        target: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        field: str,
+        id_prefix: str,
+        prefix: str = "",
+    ) -> None:
+        values = target.get(field)
+        if values is None:
+            return
+        field_path = self._field(prefix, field)
+        if not isinstance(values, list):
+            self._error(file_path, row_id, field_path, "expected array")
+            return
+        for index, value in enumerate(values):
+            self._validate_prefixed_id_value(value, file_path, row_id, f"{field_path}[{index}]", id_prefix)
+
+    def _validate_prefixed_id_value(
+        self,
+        value: Any,
+        file_path: Path,
+        row_id: str,
+        field: str,
+        id_prefix: str,
+    ) -> None:
+        if not self._validate_string_value(value, file_path, row_id, field):
+            return
+        if not ID_RE.fullmatch(value):
+            self._error(file_path, row_id, field, "must match <kind>.<name> lowercase ID format")
+        if not value.startswith(id_prefix):
+            self._error(file_path, row_id, field, f"must start with '{id_prefix}'")
 
     def _rows(self, table_key: str) -> list[dict[str, Any]]:
         table = self._table(table_key)

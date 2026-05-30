@@ -32,6 +32,8 @@ CONTENT_COUNT_ORDER = [
     ("enemies", "Enemies"),
     ("encounters", "Encounters"),
     ("quests", "Quests"),
+    ("events", "Campaign events"),
+    ("endings", "Endings"),
     ("reward_pools", "Reward pools"),
     ("statuses", "Statuses"),
     ("progression_nodes", "Progression nodes"),
@@ -205,6 +207,10 @@ def render_summary(report: dict[str, Any]) -> str:
             f"- Enemies by rank: {_format_counts(summaries['enemies']['by_rank'])}",
             f"- Encounters by tier: {_format_counts(summaries['encounters']['by_tier'])}",
             f"- Quests by reward pool: {_format_counts(summaries['quests']['by_reward_pool_id'])}",
+            f"- Events by campaign: {_format_counts(summaries['events']['by_campaign_id'])}",
+            f"- Event trigger fields: {_format_counts(summaries['events']['trigger_fields'])}",
+            f"- Endings by campaign: {_format_counts(summaries['endings']['by_campaign_id'])}",
+            f"- Endings by exclusive group: {_format_counts(summaries['endings']['by_exclusive_group'])}",
             f"- Reward pool entries by kind: {_format_counts(summaries['reward_pools']['entries_by_kind'])}",
         ]
     )
@@ -282,6 +288,8 @@ def _content_summaries(rows_by_table: dict[str, list[Any]]) -> dict[str, Any]:
         "progression_nodes": _progression_summary(_dict_rows(rows_by_table["progression_nodes"])),
         "quests": _quest_summary(_dict_rows(rows_by_table["quests"])),
         "campaigns": _campaign_summary(_dict_rows(rows_by_table["campaigns"])),
+        "events": _event_summary(_dict_rows(rows_by_table["events"])),
+        "endings": _ending_summary(_dict_rows(rows_by_table["endings"])),
     }
 
 
@@ -687,6 +695,45 @@ def _quest_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "encounter_reference_count": sum(len(_list(row.get("encounter_ids"))) for row in rows),
         "by_reward_pool_id": _count_field(rows, "reward_pool_id"),
         "progression_reward_count": sum(1 for row in rows if isinstance(row.get("progression_reward_id"), str)),
+    }
+
+
+def _event_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    trigger_counter: Counter[str] = Counter()
+    effect_counter: Counter[str] = Counter()
+
+    for row in rows:
+        trigger = row.get("trigger")
+        if isinstance(trigger, dict):
+            for key in trigger.keys():
+                trigger_counter[str(key)] += 1
+        effects = row.get("effects")
+        if isinstance(effects, dict):
+            for key in effects.keys():
+                effect_counter[str(key)] += 1
+
+    return {
+        "by_campaign_id": _count_field(rows, "campaign_id"),
+        "trigger_fields": _counter_to_dict(trigger_counter),
+        "effect_fields": _counter_to_dict(effect_counter),
+    }
+
+
+def _ending_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    priorities = [row["priority"] for row in rows if isinstance(row.get("priority"), int) and not isinstance(row["priority"], bool)]
+
+    return {
+        "by_campaign_id": _count_field(rows, "campaign_id"),
+        "by_exclusive_group": _count_field(rows, "exclusive_group"),
+        "priority_min": min(priorities) if priorities else None,
+        "priority_max": max(priorities) if priorities else None,
+        "related_faction_reference_count": sum(len(_list(row.get("related_faction_ids"))) for row in rows),
+        "related_character_reference_count": sum(len(_list(row.get("related_character_ids"))) for row in rows),
+        "carryover_progression_reference_count": sum(
+            len(_list(row.get("discovery", {}).get("carryover_progression_ids")))
+            for row in rows
+            if isinstance(row.get("discovery"), dict)
+        ),
     }
 
 

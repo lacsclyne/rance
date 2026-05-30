@@ -1,0 +1,55 @@
+{
+  "$schema": "../schemas/events.schema.json",
+  "version": 1,
+  "events": [
+    {
+      "id": "event.prologue_foundry_deadline",
+      "name": "Foundry Deadline Warning",
+      "campaign_id": "campaign.prologue",
+      "summary": "A small campaign event that warns the player before the foundry gate deadline closes.",
+      "trigger": {
+        "mode": "all",
+        "turn": {
+          "at_least": 2,
+          "deadline_turn": 4
+        },
+        "faction_state": [
+          {
+            "faction_id": "faction.iron_court",
+            "state": "hostile"
+          }
+        ],
+        "front_state": [
+          {
+            "front_id": "front.ember_pass",
+            "pressure_at_least": 40
+          }
+        ],
+        "quest_state": [
+          {
+            "quest_id": "quest.secure_crossroad",
+            "state": "completed"
+          }
+        ],
+        "character_state": [
+          {
+            "character_id": "character.iris",
+            "state": "alive"
+          }
+        ],
+        "required_flags": ["flag.prologue_started"],
+        "blocked_flags": ["flag.foundry_deadline_warning_seen"]
+      },
+      "effects": {
+        "set_flags": ["flag.foundry_deadline_warning_seen"],
+        "available_quest_ids": ["quest.close_foundry"],
+        "unlock_progression_ids": ["progression.crossroad_secure"]
+      },
+      "presentation": {
+        "title": "Smoke on the Foundry Road",
+        "body": "Scouts report the foundry gate will harden if the patrol delays too long.",
+        "art_id": "event.foundry_deadline"
+      }
+    }
+  ]
+}

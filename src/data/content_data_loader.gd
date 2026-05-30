@@ -72,6 +72,18 @@ const TABLES := [
 		"file": "campaign/campaigns.json",
 		"array": "campaigns",
 		"id_prefix": "campaign."
+	},
+	{
+		"key": "events",
+		"file": "events/events.json",
+		"array": "events",
+		"id_prefix": "event."
+	},
+	{
+		"key": "endings",
+		"file": "endings/endings.json",
+		"array": "endings",
+		"id_prefix": "ending."
 	}
 ]
 
@@ -97,7 +109,19 @@ const REQUIRED_FIELDS := {
 	"encounters": ["id", "name", "tier", "waves", "reward_pool_id"],
 	"progression_nodes": ["id", "name", "requires", "unlocks"],
 	"quests": ["id", "name", "objective", "encounter_ids", "reward_pool_id"],
-	"campaigns": ["id", "name", "entry_character_ids", "acts"]
+	"campaigns": ["id", "name", "entry_character_ids", "acts"],
+	"events": ["id", "name", "campaign_id", "trigger", "presentation"],
+	"endings": [
+		"id",
+		"name",
+		"campaign_id",
+		"priority",
+		"requirements",
+		"related_faction_ids",
+		"related_character_ids",
+		"discovery",
+		"presentation"
+	]
 }
 
 const ENUMS := {
@@ -116,7 +140,12 @@ const ENUMS := {
 	"intent_target_scope": ["player_team", "enemy_team", "self", "enemy", "all_enemies", "all_players"],
 	"intent_condition_type": ["enemy_hp_at_or_below", "player_hp_at_or_below", "turn_at_least"],
 	"reward_kind": ["card", "skill"],
-	"unlock_kind": ["character", "card", "skill", "encounter", "quest"]
+	"unlock_kind": ["character", "card", "skill", "encounter", "quest"],
+	"condition_mode": ["all", "any"],
+	"faction_condition_state": ["allied", "neutral", "hostile", "destroyed"],
+	"front_control": ["ally", "contested", "enemy"],
+	"quest_condition_state": ["locked", "available", "active", "completed", "failed"],
+	"character_condition_state": ["alive", "dead", "available", "unavailable"]
 }
 
 const KIND_TARGETS := {
@@ -138,7 +167,9 @@ const CONTENT_LABELS := {
 	"encounters": "encounter",
 	"progression_nodes": "progression node",
 	"quests": "quest",
-	"campaigns": "campaign"
+	"campaigns": "campaign",
+	"events": "event",
+	"endings": "ending"
 }
 
 const ASSET_REFERENCE_FIELDS := {
@@ -412,6 +443,25 @@ func _validate_row_shape(table_key: String, row: Dictionary, file_path: String, 
 			_validate_optional_string(row, file_path, row_id, "summary", errors)
 			_validate_string_array(row, file_path, row_id, "entry_character_ids", errors, false)
 			_validate_acts(row, file_path, row_id, errors)
+		"events":
+			_validate_non_empty_string(row, file_path, row_id, "name", errors)
+			if row.has("campaign_id"):
+				_validate_string_value(row["campaign_id"], file_path, row_id, "campaign_id", errors)
+			_validate_optional_string(row, file_path, row_id, "summary", errors)
+			_validate_event_trigger(row, file_path, row_id, errors)
+			_validate_event_effects(row, file_path, row_id, errors)
+			_validate_presentation(row, file_path, row_id, "presentation", ["title", "body"], [], errors)
+		"endings":
+			_validate_non_empty_string(row, file_path, row_id, "name", errors)
+			if row.has("campaign_id"):
+				_validate_string_value(row["campaign_id"], file_path, row_id, "campaign_id", errors)
+			_validate_integer_min_field(row, file_path, row_id, "priority", 0, errors)
+			_validate_optional_string(row, file_path, row_id, "exclusive_group", errors)
+			_validate_string_array(row, file_path, row_id, "related_faction_ids", errors, false)
+			_validate_string_array(row, file_path, row_id, "related_character_ids", errors, false)
+			_validate_ending_requirements(row, file_path, row_id, errors)
+			_validate_ending_discovery(row, file_path, row_id, errors)
+			_validate_presentation(row, file_path, row_id, "presentation", ["title", "body"], ["subtitle"], errors)
 
 	if ASSET_REFERENCE_FIELDS.has(table_key):
 		_validate_optional_string(row, file_path, row_id, ASSET_REFERENCE_FIELDS[table_key]["field"], errors)
@@ -667,6 +717,213 @@ func _validate_acts(row: Dictionary, file_path: String, row_id: String, errors: 
 			_validate_string_value(act["progression_gate_id"], file_path, row_id, "%s.progression_gate_id" % field_path, errors)
 
 
+func _validate_event_trigger(row: Dictionary, file_path: String, row_id: String, errors: Array) -> void:
+	if not row.has("trigger"):
+		return
+
+	var trigger = row["trigger"]
+	if typeof(trigger) != TYPE_DICTIONARY:
+		_add_error(errors, file_path, row_id, "trigger", "expected object")
+		return
+
+	if trigger.has("mode"):
+		_validate_enum_value(trigger["mode"], file_path, row_id, "trigger.mode", ENUMS["condition_mode"], errors)
+	if trigger.has("turn"):
+		_validate_turn_condition(trigger["turn"], file_path, row_id, "trigger.turn", errors)
+
+	_validate_faction_conditions(trigger, file_path, row_id, "faction_state", "trigger", errors)
+	_validate_front_conditions(trigger, file_path, row_id, "front_state", "trigger", errors)
+	_validate_quest_conditions(trigger, file_path, row_id, "quest_state", "trigger", errors)
+	_validate_character_conditions(trigger, file_path, row_id, "character_state", "trigger", errors)
+	_validate_prefixed_id_array(trigger, file_path, row_id, "required_flags", "flag.", errors, "trigger")
+	_validate_prefixed_id_array(trigger, file_path, row_id, "blocked_flags", "flag.", errors, "trigger")
+
+
+func _validate_event_effects(row: Dictionary, file_path: String, row_id: String, errors: Array) -> void:
+	if not row.has("effects"):
+		return
+
+	var effects = row["effects"]
+	if typeof(effects) != TYPE_DICTIONARY:
+		_add_error(errors, file_path, row_id, "effects", "expected object")
+		return
+
+	_validate_prefixed_id_array(effects, file_path, row_id, "set_flags", "flag.", errors, "effects")
+	_validate_prefixed_id_array(effects, file_path, row_id, "clear_flags", "flag.", errors, "effects")
+	_validate_string_array(effects, file_path, row_id, "available_quest_ids", errors, true, "effects")
+	_validate_string_array(effects, file_path, row_id, "unlock_progression_ids", errors, true, "effects")
+
+
+func _validate_ending_requirements(row: Dictionary, file_path: String, row_id: String, errors: Array) -> void:
+	if not row.has("requirements"):
+		return
+
+	var requirements = row["requirements"]
+	if typeof(requirements) != TYPE_DICTIONARY:
+		_add_error(errors, file_path, row_id, "requirements", "expected object")
+		return
+
+	if requirements.has("mode"):
+		_validate_enum_value(requirements["mode"], file_path, row_id, "requirements.mode", ENUMS["condition_mode"], errors)
+	_validate_string_array(requirements, file_path, row_id, "completed_quest_ids", errors, true, "requirements")
+	_validate_string_array(requirements, file_path, row_id, "failed_quest_ids", errors, true, "requirements")
+	_validate_string_array(requirements, file_path, row_id, "required_progression_ids", errors, true, "requirements")
+	_validate_string_array(requirements, file_path, row_id, "blocked_progression_ids", errors, true, "requirements")
+	_validate_prefixed_id_array(requirements, file_path, row_id, "required_flags", "flag.", errors, "requirements")
+	_validate_prefixed_id_array(requirements, file_path, row_id, "blocked_flags", "flag.", errors, "requirements")
+	_validate_character_conditions(requirements, file_path, row_id, "character_state", "requirements", errors)
+	_validate_faction_conditions(requirements, file_path, row_id, "faction_state", "requirements", errors)
+
+
+func _validate_ending_discovery(row: Dictionary, file_path: String, row_id: String, errors: Array) -> void:
+	if not row.has("discovery"):
+		return
+
+	var discovery = row["discovery"]
+	if typeof(discovery) != TYPE_DICTIONARY:
+		_add_error(errors, file_path, row_id, "discovery", "expected object")
+		return
+
+	_validate_prefixed_id_array(discovery, file_path, row_id, "set_flags", "flag.", errors, "discovery")
+	_validate_string_array(discovery, file_path, row_id, "carryover_progression_ids", errors, true, "discovery")
+	if discovery.has("notes"):
+		_validate_string_value(discovery["notes"], file_path, row_id, "discovery.notes", errors)
+
+
+func _validate_presentation(
+	row: Dictionary,
+	file_path: String,
+	row_id: String,
+	field: String,
+	required_fields: Array,
+	optional_fields: Array,
+	errors: Array
+) -> void:
+	if not row.has(field):
+		return
+
+	var presentation = row[field]
+	if typeof(presentation) != TYPE_DICTIONARY:
+		_add_error(errors, file_path, row_id, field, "expected object")
+		return
+
+	_require_fields(presentation, required_fields, file_path, row_id, field, errors)
+	for text_field in required_fields:
+		if presentation.has(text_field):
+			_validate_non_empty_string(presentation, file_path, row_id, str(text_field), errors, field)
+	for text_field in optional_fields:
+		if presentation.has(text_field):
+			_validate_string_value(presentation[text_field], file_path, row_id, "%s.%s" % [field, text_field], errors)
+	for id_field in ["art_id", "music_id"]:
+		if presentation.has(id_field):
+			_validate_string_value(presentation[id_field], file_path, row_id, "%s.%s" % [field, id_field], errors)
+
+
+func _validate_turn_condition(value, file_path: String, row_id: String, field_path: String, errors: Array) -> void:
+	if typeof(value) != TYPE_DICTIONARY:
+		_add_error(errors, file_path, row_id, field_path, "expected object")
+		return
+	for int_field in ["at", "at_least", "before", "deadline_turn"]:
+		if value.has(int_field):
+			_validate_integer_min_value(value[int_field], file_path, row_id, "%s.%s" % [field_path, int_field], 1, errors)
+
+
+func _validate_faction_conditions(
+	target: Dictionary,
+	file_path: String,
+	row_id: String,
+	field: String,
+	prefix: String,
+	errors: Array
+) -> void:
+	var entries := _get_array_with_prefix(target, file_path, row_id, field, prefix, errors)
+	for index in range(entries.size()):
+		var entry = entries[index]
+		var entry_path := "%s.%s[%s]" % [prefix, field, index]
+		if typeof(entry) != TYPE_DICTIONARY:
+			_add_error(errors, file_path, row_id, entry_path, "expected object")
+			continue
+		_require_fields(entry, ["faction_id"], file_path, row_id, entry_path, errors)
+		if entry.has("faction_id"):
+			_validate_string_value(entry["faction_id"], file_path, row_id, "%s.faction_id" % entry_path, errors)
+		if entry.has("state"):
+			_validate_enum_value(entry["state"], file_path, row_id, "%s.state" % entry_path, ENUMS["faction_condition_state"], errors)
+		for int_field in ["standing_at_least", "standing_at_most"]:
+			if entry.has(int_field) and not _is_integer_value(entry[int_field]):
+				_add_error(errors, file_path, row_id, "%s.%s" % [entry_path, int_field], "expected integer")
+
+
+func _validate_front_conditions(
+	target: Dictionary,
+	file_path: String,
+	row_id: String,
+	field: String,
+	prefix: String,
+	errors: Array
+) -> void:
+	var entries := _get_array_with_prefix(target, file_path, row_id, field, prefix, errors)
+	for index in range(entries.size()):
+		var entry = entries[index]
+		var entry_path := "%s.%s[%s]" % [prefix, field, index]
+		if typeof(entry) != TYPE_DICTIONARY:
+			_add_error(errors, file_path, row_id, entry_path, "expected object")
+			continue
+		_require_fields(entry, ["front_id"], file_path, row_id, entry_path, errors)
+		if entry.has("front_id"):
+			_validate_prefixed_id_value(entry["front_id"], file_path, row_id, "%s.front_id" % entry_path, "front.", errors)
+		if entry.has("control"):
+			_validate_enum_value(entry["control"], file_path, row_id, "%s.control" % entry_path, ENUMS["front_control"], errors)
+		for int_field in ["pressure_at_least", "pressure_at_most"]:
+			if entry.has(int_field):
+				_validate_integer_min_value(entry[int_field], file_path, row_id, "%s.%s" % [entry_path, int_field], 0, errors)
+		if entry.has("deadline_turn"):
+			_validate_integer_min_value(entry["deadline_turn"], file_path, row_id, "%s.deadline_turn" % entry_path, 1, errors)
+
+
+func _validate_quest_conditions(
+	target: Dictionary,
+	file_path: String,
+	row_id: String,
+	field: String,
+	prefix: String,
+	errors: Array
+) -> void:
+	var entries := _get_array_with_prefix(target, file_path, row_id, field, prefix, errors)
+	for index in range(entries.size()):
+		var entry = entries[index]
+		var entry_path := "%s.%s[%s]" % [prefix, field, index]
+		if typeof(entry) != TYPE_DICTIONARY:
+			_add_error(errors, file_path, row_id, entry_path, "expected object")
+			continue
+		_require_fields(entry, ["quest_id", "state"], file_path, row_id, entry_path, errors)
+		if entry.has("quest_id"):
+			_validate_string_value(entry["quest_id"], file_path, row_id, "%s.quest_id" % entry_path, errors)
+		if entry.has("state"):
+			_validate_enum_value(entry["state"], file_path, row_id, "%s.state" % entry_path, ENUMS["quest_condition_state"], errors)
+
+
+func _validate_character_conditions(
+	target: Dictionary,
+	file_path: String,
+	row_id: String,
+	field: String,
+	prefix: String,
+	errors: Array
+) -> void:
+	var entries := _get_array_with_prefix(target, file_path, row_id, field, prefix, errors)
+	for index in range(entries.size()):
+		var entry = entries[index]
+		var entry_path := "%s.%s[%s]" % [prefix, field, index]
+		if typeof(entry) != TYPE_DICTIONARY:
+			_add_error(errors, file_path, row_id, entry_path, "expected object")
+			continue
+		_require_fields(entry, ["character_id", "state"], file_path, row_id, entry_path, errors)
+		if entry.has("character_id"):
+			_validate_string_value(entry["character_id"], file_path, row_id, "%s.character_id" % entry_path, errors)
+		if entry.has("state"):
+			_validate_enum_value(entry["state"], file_path, row_id, "%s.state" % entry_path, ENUMS["character_condition_state"], errors)
+
+
 func _validate_references(
 	content: Dictionary,
 	files: Dictionary,
@@ -758,6 +1015,57 @@ func _validate_references(
 			_validate_ref_array(act, file_path, row_id, "quest_ids", "quests", indexes, errors, "acts[%s]" % index)
 			if act.has("progression_gate_id"):
 				_validate_ref_value(act["progression_gate_id"], file_path, row_id, "acts[%s].progression_gate_id" % index, "progression_nodes", indexes, errors)
+
+	for row in _rows(content, "events"):
+		var file_path := _file_for(files, "events")
+		var row_id := _row_label(row, 0)
+		_validate_ref_field(row, file_path, row_id, "campaign_id", "campaigns", indexes, errors)
+		var trigger = row.get("trigger")
+		if typeof(trigger) == TYPE_DICTIONARY:
+			_validate_condition_refs(trigger, file_path, row_id, "trigger", indexes, errors)
+		var effects = row.get("effects")
+		if typeof(effects) == TYPE_DICTIONARY:
+			_validate_ref_array(effects, file_path, row_id, "available_quest_ids", "quests", indexes, errors, "effects")
+			_validate_ref_array(effects, file_path, row_id, "unlock_progression_ids", "progression_nodes", indexes, errors, "effects")
+
+	for row in _rows(content, "endings"):
+		var file_path := _file_for(files, "endings")
+		var row_id := _row_label(row, 0)
+		_validate_ref_field(row, file_path, row_id, "campaign_id", "campaigns", indexes, errors)
+		_validate_ref_array(row, file_path, row_id, "related_faction_ids", "factions", indexes, errors)
+		_validate_ref_array(row, file_path, row_id, "related_character_ids", "characters", indexes, errors)
+		var requirements = row.get("requirements")
+		if typeof(requirements) == TYPE_DICTIONARY:
+			_validate_ref_array(requirements, file_path, row_id, "completed_quest_ids", "quests", indexes, errors, "requirements")
+			_validate_ref_array(requirements, file_path, row_id, "failed_quest_ids", "quests", indexes, errors, "requirements")
+			_validate_ref_array(requirements, file_path, row_id, "required_progression_ids", "progression_nodes", indexes, errors, "requirements")
+			_validate_ref_array(requirements, file_path, row_id, "blocked_progression_ids", "progression_nodes", indexes, errors, "requirements")
+			_validate_condition_refs(requirements, file_path, row_id, "requirements", indexes, errors)
+		var discovery = row.get("discovery")
+		if typeof(discovery) == TYPE_DICTIONARY:
+			_validate_ref_array(discovery, file_path, row_id, "carryover_progression_ids", "progression_nodes", indexes, errors, "discovery")
+
+
+func _validate_condition_refs(
+	target: Dictionary,
+	file_path: String,
+	row_id: String,
+	prefix: String,
+	indexes: Dictionary,
+	errors: Array
+) -> void:
+	for index in range(_array_or_empty(target, "faction_state").size()):
+		var entry = target["faction_state"][index]
+		if typeof(entry) == TYPE_DICTIONARY and entry.has("faction_id"):
+			_validate_ref_value(entry["faction_id"], file_path, row_id, "%s.faction_state[%s].faction_id" % [prefix, index], "factions", indexes, errors)
+	for index in range(_array_or_empty(target, "quest_state").size()):
+		var entry = target["quest_state"][index]
+		if typeof(entry) == TYPE_DICTIONARY and entry.has("quest_id"):
+			_validate_ref_value(entry["quest_id"], file_path, row_id, "%s.quest_state[%s].quest_id" % [prefix, index], "quests", indexes, errors)
+	for index in range(_array_or_empty(target, "character_state").size()):
+		var entry = target["character_state"][index]
+		if typeof(entry) == TYPE_DICTIONARY and entry.has("character_id"):
+			_validate_ref_value(entry["character_id"], file_path, row_id, "%s.character_state[%s].character_id" % [prefix, index], "characters", indexes, errors)
 
 
 func _load_asset_manifest_categories(manifest_path: String) -> Dictionary:
@@ -1062,6 +1370,53 @@ func _get_array(row: Dictionary, file_path: String, row_id: String, field: Strin
 		_add_error(errors, file_path, row_id, field, "expected array")
 		return []
 	return row[field]
+
+
+func _get_array_with_prefix(
+	row: Dictionary,
+	file_path: String,
+	row_id: String,
+	field: String,
+	prefix: String,
+	errors: Array
+) -> Array:
+	if not row.has(field):
+		return []
+	var field_path := _join_field(prefix, field)
+	if typeof(row[field]) != TYPE_ARRAY:
+		_add_error(errors, file_path, row_id, field_path, "expected array")
+		return []
+	return row[field]
+
+
+func _validate_prefixed_id_array(
+	target: Dictionary,
+	file_path: String,
+	row_id: String,
+	field: String,
+	id_prefix: String,
+	errors: Array,
+	prefix: String = ""
+) -> void:
+	if not target.has(field):
+		return
+	var field_path := _join_field(prefix, field)
+	if typeof(target[field]) != TYPE_ARRAY:
+		_add_error(errors, file_path, row_id, field_path, "expected array")
+		return
+	var values: Array = target[field]
+	for index in range(values.size()):
+		_validate_prefixed_id_value(values[index], file_path, row_id, "%s[%s]" % [field_path, index], id_prefix, errors)
+
+
+func _validate_prefixed_id_value(value, file_path: String, row_id: String, field: String, id_prefix: String, errors: Array) -> void:
+	if not _validate_string_value(value, file_path, row_id, field, errors):
+		return
+	var id := str(value)
+	if not _matches_regex(id, ID_PATTERN):
+		_add_error(errors, file_path, row_id, field, "must match <kind>.<name> lowercase ID format")
+	if not id.begins_with(id_prefix):
+		_add_error(errors, file_path, row_id, field, "must start with '%s'" % id_prefix)
 
 
 func _array_or_empty(row, field: String) -> Array:

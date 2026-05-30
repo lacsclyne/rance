@@ -1,0 +1,55 @@
+{
+  "$schema": "../../../../data/schemas/events.schema.json",
+  "version": 1,
+  "events": [
+    {
+      "id": "event.template_deadline_warning",
+      "name": "Template Deadline Warning",
+      "campaign_id": "campaign.template_intro",
+      "summary": "Generic event row showing turn, deadline, state, and flag gates.",
+      "trigger": {
+        "mode": "all",
+        "turn": {
+          "at_least": 2,
+          "deadline_turn": 5
+        },
+        "faction_state": [
+          {
+            "faction_id": "faction.template_opponents",
+            "state": "hostile"
+          }
+        ],
+        "front_state": [
+          {
+            "front_id": "front.template_border",
+            "pressure_at_least": 50
+          }
+        ],
+        "quest_state": [
+          {
+            "quest_id": "quest.template_intro",
+            "state": "available"
+          }
+        ],
+        "character_state": [
+          {
+            "character_id": "character.template_ally",
+            "state": "available"
+          }
+        ],
+        "required_flags": ["flag.template_campaign_started"],
+        "blocked_flags": ["flag.template_deadline_warning_seen"]
+      },
+      "effects": {
+        "set_flags": ["flag.template_deadline_warning_seen"],
+        "available_quest_ids": ["quest.template_intro"],
+        "unlock_progression_ids": ["progression.template_intro_unlock"]
+      },
+      "presentation": {
+        "title": "Template Deadline Warning",
+        "body": "Use this field for draft event text shown by a future event scene.",
+        "art_id": "event.template_deadline_warning"
+      }
+    }
+  ]
+}
