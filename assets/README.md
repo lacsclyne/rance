@@ -42,3 +42,7 @@ Future art issues should add or update the manifest entry in the same change as
 the asset file. Keep placeholder entries `required: false`; switch to
 `required: true` only when the referenced file is committed and runtime or
 content validation depends on it.
+
+Runtime code should resolve manifest IDs through
+`src/resource_loading/resource_registry.gd` instead of hardcoding final art
+paths in gameplay or UI modules.
