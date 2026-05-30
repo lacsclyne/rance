@@ -1,0 +1,88 @@
+name: 需求任务
+description: 用于提交功能需求、流程改进或执行任务
+title: "[需求] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        请尽量补充完整上下文，至少说明以下内容：
+        - 需求描述：要解决什么问题，预期结果是什么
+        - 验收标准：完成后如何判断交付达标
+        - 测试目标：需要重点验证的主流程、边界场景和风险点
+
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+      description: 说明当前问题、业务背景或触发原因
+      placeholder: 当前现状是什么，为什么现在要处理这个需求？
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirement-description
+    attributes:
+      label: 需求描述
+      description: 明确要做什么，以及期望产出或行为变化
+      placeholder: |
+        1. 要解决什么问题？
+        2. 目标用户或使用方是谁？
+        3. 期望交付物或行为变化是什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 范围说明
+      description: 说明本次包含和不包含的内容，避免范围不清
+      placeholder: |
+        包含：
+        - 
+
+        不包含：
+        - 
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: 验收标准
+      description: 用可核对的方式描述完成条件
+      placeholder: |
+        - [ ] 条件 1
+        - [ ] 条件 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: test-targets
+    attributes:
+      label: 测试目标
+      description: 说明需要重点验证的场景、边界条件和风险点
+      placeholder: |
+        核心场景：
+        - 需要验证的主流程
+
+        边界场景：
+        - 容易遗漏的输入、状态或异常路径
+
+        风险点：
+        - 本次改动最容易引发回归的问题
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 补充信息
+      description: 可填写关联文档、设计稿、接口说明、依赖项等
+      placeholder: |
+        相关链接：
+        - 
+
+        依赖项：
+        - 
+    validations:
+      required: false
