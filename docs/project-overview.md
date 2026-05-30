@@ -34,8 +34,10 @@ content, numeric formulas, or art assets.
 | `tests/` | Automated tests, fixtures, and headless validation helpers. |
 
 Current data contracts and minimal content fixtures are documented in
-[data/README.md](../data/README.md). They are data-only and do not add runtime
-loading or gameplay logic.
+[data/README.md](../data/README.md). Starter templates for generic content
+authoring are documented in
+[docs/content-authoring/README.md](content-authoring/README.md). They are
+data-only and do not add runtime loading or gameplay logic.
 
 ## Module Index
 

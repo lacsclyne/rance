@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../../data/schemas/factions.schema.json",
+  "version": 1,
+  "factions": [
+    {
+      "id": "faction.template_allies",
+      "name": "Template Allies",
+      "alignment": "ally",
+      "color": "#3B82F6",
+      "summary": "Generic allied faction placeholder for authoring tests."
+    },
+    {
+      "id": "faction.template_opponents",
+      "name": "Template Opponents",
+      "alignment": "enemy",
+      "color": "#B45309",
+      "summary": "Generic opposing faction placeholder for authoring tests."
+    }
+  ]
+}

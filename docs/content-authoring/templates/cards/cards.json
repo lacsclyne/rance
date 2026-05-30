@@ -1,0 +1,32 @@
+{
+  "$schema": "../../../../data/schemas/cards.schema.json",
+  "version": 1,
+  "cards": [
+    {
+      "id": "card.template_strike",
+      "name": "Template Strike",
+      "type": "attack",
+      "rarity": "starter",
+      "cost": 1,
+      "target": "enemy",
+      "tags": ["starter", "template"],
+      "effects": [
+        { "type": "damage", "amount": 6 },
+        { "type": "apply_status", "status_id": "status.template_mark", "amount": 1, "duration": 1 }
+      ]
+    },
+    {
+      "id": "card.template_guard",
+      "name": "Template Guard",
+      "type": "skill",
+      "rarity": "starter",
+      "cost": 1,
+      "target": "self",
+      "tags": ["starter", "template"],
+      "effects": [
+        { "type": "block", "amount": 6 },
+        { "type": "apply_status", "status_id": "status.template_guard", "amount": 1, "duration": 1 }
+      ]
+    }
+  ]
+}
