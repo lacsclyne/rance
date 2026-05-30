@@ -13,6 +13,12 @@ godot --headless --path . --script tests/test_resource_registry.gd
 godot --headless --path . --script tests/e2e/test_headless_mvp_loop.gd
 ```
 
+Related local build/export smoke check:
+
+```sh
+python tools/dev/validate_build_export.py
+```
+
 The E2E smoke test loads the sample content data, builds a minimal collection
 and formation, drives a quest battle into a reward choice, and verifies the
 settlement summary. It intentionally avoids UI scenes, art assets, campaign-map

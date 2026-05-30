@@ -27,6 +27,15 @@ godot --headless --path . --script tests/test_resource_registry.gd
 godot --headless --path . --script tests/e2e/test_headless_mvp_loop.gd
 ```
 
+## Related Local Validation
+
+```sh
+python tools/dev/validate_build_export.py
+```
+
+This checks the local desktop export path and reports missing Godot export
+templates as a workstation setup issue.
+
 ## Interface Boundaries
 
 - Tests may exercise every module, but production modules must not depend on
