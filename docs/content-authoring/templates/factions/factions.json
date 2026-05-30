@@ -7,6 +7,7 @@
       "name": "Template Allies",
       "alignment": "ally",
       "color": "#3B82F6",
+      "icon_asset_id": "faction_icon.template_allies",
       "summary": "Generic allied faction placeholder for authoring tests."
     },
     {
@@ -14,6 +15,7 @@
       "name": "Template Opponents",
       "alignment": "enemy",
       "color": "#B45309",
+      "icon_asset_id": "faction_icon.template_opponents",
       "summary": "Generic opposing faction placeholder for authoring tests."
     }
   ]

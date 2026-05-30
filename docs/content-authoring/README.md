@@ -29,7 +29,9 @@ ending schema or fixture collection yet.
 2. Rename every `*.template_*` ID before committing.
 3. Update any reference fields so they point to existing IDs in the matching
    collection.
-4. Run validation:
+4. Fill optional asset reference fields with stable manifest IDs from
+   `assets/asset_manifest.json` when the content expects art.
+5. Run validation:
 
 ```sh
 python tools/dev/validate_content_data.py
@@ -98,6 +100,20 @@ be at least `1`; the other stat values must be at least `0`.
 | `campaigns[].acts[].quest_ids[]` | `quest.*` |
 | `campaigns[].acts[].progression_gate_id` | `progression.*` when present |
 
+## Asset Reference Fields
+
+Asset fields are optional, but when present they must reference an entry in
+`assets/asset_manifest.json` with the matching category. Placeholder manifest
+entries are valid and should be used before final art exists.
+
+| Field | Manifest category |
+| --- | --- |
+| `factions[].icon_asset_id` | `faction_icon` |
+| `characters[].portrait_asset_id` | `portrait` |
+| `cards[].card_art_asset_id` | `card_art` |
+| `skills[].icon_asset_id` | `skill_icon` |
+| `encounters[].background_asset_id` | `encounter_background` |
+
 ## Common Validation Errors
 
 - `missing required field`: the row or nested object lacks a schema-required
@@ -109,6 +125,10 @@ be at least `1`; the other stat values must be at least `0`.
 - `duplicate ID`: the same ID appears twice in one collection or elsewhere in
   loaded content.
 - `unknown ... id`: a reference field points at content that does not exist.
+- `unknown asset id`: an asset reference field points at a manifest entry that
+  does not exist.
+- `expected asset category`: an asset reference field points at a manifest entry
+  from the wrong category.
 - `expected one of ...`: an enum field uses a value outside the schema.
 - `must be >= ...`: an integer or number is below the schema minimum.
 - `expected array` or `expected object`: a nested field has the wrong JSON type.

@@ -12,8 +12,10 @@ collections under `res://data/`. The returned dictionary contains:
 - `errors`: messages that include file, content ID, field, and failure reason.
 
 The loader validates required fields, stable ID format and uniqueness, enum
-values, basic integer ranges, and cross-table references. It does not execute
-card effects, resolve combat, interpret quest flow, mutate saves, or touch UI.
+values, basic integer ranges, cross-table references, and optional asset
+manifest references such as `portrait_asset_id` or `card_art_asset_id`. It does
+not execute card effects, resolve combat, interpret quest flow, mutate saves,
+or touch UI.
 
 Developer validation commands are documented in `tools/dev/README.md`. See
 `docs/modules/data_definitions.md` for module boundaries.

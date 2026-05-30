@@ -31,6 +31,7 @@
             "type": "string",
             "enum": ["self", "ally", "enemy", "all_enemies"]
           },
+          "card_art_asset_id": { "$ref": "#/$defs/assetId" },
           "tags": {
             "type": "array",
             "items": { "type": "string" },
@@ -47,6 +48,10 @@
   },
   "$defs": {
     "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "assetId": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
     },
