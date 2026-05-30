@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../../data/schemas/enemies.schema.json",
+  "version": 1,
+  "enemies": [
+    {
+      "id": "enemy.template_opponent",
+      "name": "Template Opponent",
+      "faction_id": "faction.template_opponents",
+      "rank": "minion",
+      "base_stats": { "hp": 24, "attack": 5, "defense": 2, "speed": 4 },
+      "skill_ids": ["skill.template_pressure"],
+      "intent_notes": "Generic enemy behavior placeholder."
+    }
+  ]
+}

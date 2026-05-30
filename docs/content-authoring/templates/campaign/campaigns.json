@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../../data/schemas/campaign.schema.json",
+  "version": 1,
+  "campaigns": [
+    {
+      "id": "campaign.template_intro",
+      "name": "Template Intro Campaign",
+      "summary": "Generic campaign shell placeholder.",
+      "entry_character_ids": ["character.template_ally"],
+      "acts": [
+        {
+          "id": "act.template_intro",
+          "name": "Template Intro Act",
+          "progression_gate_id": "progression.template_intro_unlock",
+          "encounter_ids": ["encounter.template_intro"],
+          "quest_ids": ["quest.template_intro"]
+        }
+      ]
+    }
+  ]
+}

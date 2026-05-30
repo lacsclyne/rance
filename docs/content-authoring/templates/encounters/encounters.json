@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../../data/schemas/encounters.schema.json",
+  "version": 1,
+  "encounters": [
+    {
+      "id": "encounter.template_intro",
+      "name": "Template Intro Encounter",
+      "tier": 1,
+      "waves": [
+        { "enemy_id": "enemy.template_opponent", "count": 1 }
+      ],
+      "reward_pool_id": "reward_pool.template_basic",
+      "environment": "template_environment",
+      "intent_pattern": {
+        "rotation": [
+          {
+            "id": "intent.template_attack",
+            "name": "Template Attack",
+            "action_type": "attack",
+            "strength": 4,
+            "target_scope": "player_team",
+            "defendable": true,
+            "interruptible": true
+          }
+        ]
+      }
+    }
+  ]
+}

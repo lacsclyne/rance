@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../data/schemas/quests.schema.json",
+  "version": 1,
+  "quests": [
+    {
+      "id": "quest.template_intro",
+      "name": "Template Intro Quest",
+      "objective": "Complete the generic introductory encounter.",
+      "encounter_ids": ["encounter.template_intro"],
+      "reward_pool_id": "reward_pool.template_basic",
+      "progression_reward_id": "progression.template_intro_unlock"
+    }
+  ]
+}

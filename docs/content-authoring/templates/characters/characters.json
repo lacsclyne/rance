@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../../data/schemas/characters.schema.json",
+  "version": 1,
+  "characters": [
+    {
+      "id": "character.template_ally",
+      "name": "Template Ally",
+      "faction_id": "faction.template_allies",
+      "role": "template_role",
+      "base_stats": { "hp": 36, "attack": 5, "defense": 4, "speed": 5 },
+      "starting_deck": ["card.template_strike", "card.template_guard"],
+      "skill_ids": ["skill.template_support"],
+      "bio": "Generic playable character placeholder."
+    }
+  ]
+}
