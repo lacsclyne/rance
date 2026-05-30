@@ -1,5 +1,9 @@
 # System Clone Plan
 
+Historical note: this file records an earlier data-bootstrap plan. It is not the
+current source of truth when it conflicts with `docs/README.md`,
+`docs/project-overview.md`, module docs, or `data/README.md`.
+
 This plan captures the data layer needed before implementing gameplay. It is a
 small content clone of the intended RPG card battle systems: enough structure to
 exercise IDs, references, and fixture loading without adding runtime code.
