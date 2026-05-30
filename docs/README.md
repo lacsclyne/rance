@@ -29,7 +29,7 @@ changing.
 | Tests | [modules/tests.md](modules/tests.md) | `tests/`, `tools/dev/` |
 | CI | [modules/tests.md](modules/tests.md) | `.github/`, `tests/`, `tools/dev/` |
 | Design/config/art intake | [content-authoring/intake-workflow.md](content-authoring/intake-workflow.md) | `docs/content-authoring/`, `data/`, `assets/`, `tools/dev/` |
-| Content authoring | [../data/README.md](../data/README.md) | `data/`, `data/schemas/`, `tools/dev/`, `src/data/` |
+| Content authoring | [content-authoring/README.md](content-authoring/README.md) | `data/`, `data/schemas/`, `tools/dev/`, `src/data/` |
 
 ## Update Rule
 
