@@ -14,15 +14,15 @@
       "name": "Field Medicine",
       "trigger": "turn_start",
       "description": "Restore a small amount of health to the lowest-health ally.",
-      "status_ids": ["status.regeneration"],
+      "status_ids": ["status.guard"],
       "numeric_value": 2
     },
     {
       "id": "skill.arcane_study",
       "name": "Arcane Study",
       "trigger": "battle_start",
-      "description": "Begin battle with focus for extra card flow.",
-      "status_ids": ["status.focus"],
+      "description": "Begin battle with guard for a safer opening.",
+      "status_ids": ["status.guard"],
       "numeric_value": 1
     },
     {
@@ -30,7 +30,7 @@
       "name": "Shield Wall",
       "trigger": "battle_start",
       "description": "Start battle with bonus block.",
-      "status_ids": ["status.block"],
+      "status_ids": ["status.guard"],
       "numeric_value": 5
     },
     {
@@ -38,23 +38,23 @@
       "name": "Battle Rhythm",
       "trigger": "card_played",
       "description": "Every third card grants block.",
-      "status_ids": ["status.block"],
+      "status_ids": ["status.guard"],
       "numeric_value": 3
     },
     {
       "id": "skill.surge_control",
       "name": "Surge Control",
       "trigger": "active",
-      "description": "Convert focus into direct damage.",
-      "status_ids": ["status.focus"],
+      "description": "Convert an opening into direct damage and weaken pressure.",
+      "status_ids": ["status.weaken"],
       "numeric_value": 4
     },
     {
       "id": "skill.steady_breath",
       "name": "Steady Breath",
       "trigger": "turn_start",
-      "description": "Gain small healing when below half health.",
-      "status_ids": ["status.regeneration"],
+      "description": "Gain a small guard buffer when below half health.",
+      "status_ids": ["status.guard"],
       "numeric_value": 2
     },
     {
@@ -62,23 +62,23 @@
       "name": "Evasive Footwork",
       "trigger": "on_damage",
       "description": "Gain block after taking damage.",
-      "status_ids": ["status.block"],
+      "status_ids": ["status.guard"],
       "numeric_value": 3
     },
     {
       "id": "skill.command_aura",
       "name": "Command Aura",
       "trigger": "turn_start",
-      "description": "Grant focus to the party leader target.",
-      "status_ids": ["status.focus"],
+      "description": "Grant guard to the party leader target.",
+      "status_ids": ["status.guard"],
       "numeric_value": 1
     },
     {
       "id": "skill.cursebreaker",
       "name": "Cursebreaker",
       "trigger": "active",
-      "description": "Remove one debuff and grant regeneration.",
-      "status_ids": ["status.vulnerable", "status.bleed", "status.regeneration"],
+      "description": "Remove one debuff and grant guard.",
+      "status_ids": ["status.vulnerable", "status.bleed", "status.guard"],
       "numeric_value": 1
     }
   ]

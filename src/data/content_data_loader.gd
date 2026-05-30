@@ -76,7 +76,18 @@ const TABLES := [
 
 const REQUIRED_FIELDS := {
 	"factions": ["id", "name", "alignment", "color"],
-	"statuses": ["id", "name", "polarity", "stack_rule", "default_duration", "description"],
+	"statuses": [
+		"id",
+		"name",
+		"polarity",
+		"stack_rule",
+		"default_duration",
+		"description",
+		"effect_type",
+		"numeric_value",
+		"tick_timing",
+		"expire_timing"
+	],
 	"cards": ["id", "name", "type", "rarity", "cost", "target", "effects"],
 	"skills": ["id", "name", "trigger", "description"],
 	"characters": ["id", "name", "faction_id", "role", "base_stats", "starting_deck", "skill_ids"],
@@ -92,6 +103,8 @@ const ENUMS := {
 	"alignment": ["ally", "neutral", "enemy"],
 	"polarity": ["buff", "debuff"],
 	"stack_rule": ["add", "replace", "intensity"],
+	"status_effect_type": ["damage_over_time", "vulnerable", "weaken", "guard", "seal", "heal_block"],
+	"status_timing": ["none", "turn_start", "turn_end"],
 	"card_type": ["attack", "skill", "power"],
 	"rarity": ["starter", "common", "uncommon", "rare"],
 	"target": ["self", "ally", "enemy", "all_enemies"],
@@ -318,6 +331,10 @@ func _validate_row_shape(table_key: String, row: Dictionary, file_path: String, 
 			_validate_enum(row, file_path, row_id, "stack_rule", ENUMS["stack_rule"], errors)
 			_validate_integer_min_field(row, file_path, row_id, "default_duration", 0, errors)
 			_validate_non_empty_string(row, file_path, row_id, "description", errors)
+			_validate_enum(row, file_path, row_id, "effect_type", ENUMS["status_effect_type"], errors)
+			_validate_integer_min_field(row, file_path, row_id, "numeric_value", 0, errors)
+			_validate_enum(row, file_path, row_id, "tick_timing", ENUMS["status_timing"], errors)
+			_validate_enum(row, file_path, row_id, "expire_timing", ENUMS["status_timing"], errors)
 		"cards":
 			_validate_non_empty_string(row, file_path, row_id, "name", errors)
 			_validate_enum(row, file_path, row_id, "type", ENUMS["card_type"], errors)

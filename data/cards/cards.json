@@ -22,7 +22,7 @@
       "tags": ["starter", "defense"],
       "effects": [
         { "type": "block", "amount": 7 },
-        { "type": "apply_status", "status_id": "status.block", "amount": 1, "duration": 1 }
+        { "type": "apply_status", "status_id": "status.guard", "amount": 1, "duration": 1 }
       ]
     },
     {
@@ -35,7 +35,7 @@
       "tags": ["arcane"],
       "effects": [
         { "type": "damage", "amount": 5 },
-        { "type": "apply_status", "status_id": "status.burn", "amount": 1, "duration": 2 }
+        { "type": "apply_status", "status_id": "status.bleed", "amount": 1, "duration": 2 }
       ]
     },
     {
@@ -48,7 +48,7 @@
       "tags": ["support"],
       "effects": [
         { "type": "heal", "amount": 5 },
-        { "type": "apply_status", "status_id": "status.regeneration", "amount": 1, "duration": 2 }
+        { "type": "apply_status", "status_id": "status.guard", "amount": 1, "duration": 1 }
       ]
     },
     {
@@ -61,7 +61,7 @@
       "tags": ["support"],
       "effects": [
         { "type": "draw", "amount": 1 },
-        { "type": "apply_status", "status_id": "status.focus", "amount": 1, "duration": 2 }
+        { "type": "apply_status", "status_id": "status.guard", "amount": 1, "duration": 2 }
       ]
     },
     {
@@ -87,7 +87,7 @@
       "tags": ["arcane", "control"],
       "effects": [
         { "type": "damage", "amount": 8 },
-        { "type": "apply_status", "status_id": "status.vulnerable", "amount": 1, "duration": 1 }
+        { "type": "apply_status", "status_id": "status.weaken", "amount": 1, "duration": 1 }
       ]
     },
     {

@@ -3,12 +3,16 @@
   "version": 1,
   "statuses": [
     {
-      "id": "status.block",
-      "name": "Block",
+      "id": "status.guard",
+      "name": "Guard",
       "polarity": "buff",
       "stack_rule": "add",
       "default_duration": 1,
-      "description": "Absorbs incoming damage before health is reduced."
+      "description": "Reduces incoming damage while the guard remains active.",
+      "effect_type": "guard",
+      "numeric_value": 2,
+      "tick_timing": "none",
+      "expire_timing": "turn_start"
     },
     {
       "id": "status.vulnerable",
@@ -16,7 +20,11 @@
       "polarity": "debuff",
       "stack_rule": "replace",
       "default_duration": 2,
-      "description": "Increases incoming attack damage."
+      "description": "Increases incoming damage by a percentage.",
+      "effect_type": "vulnerable",
+      "numeric_value": 50,
+      "tick_timing": "none",
+      "expire_timing": "turn_end"
     },
     {
       "id": "status.bleed",
@@ -24,31 +32,47 @@
       "polarity": "debuff",
       "stack_rule": "add",
       "default_duration": 3,
-      "description": "Deals damage at the start of the affected unit's turn."
+      "description": "Deals damage at the start of the affected side's turn.",
+      "effect_type": "damage_over_time",
+      "numeric_value": 2,
+      "tick_timing": "turn_start",
+      "expire_timing": "turn_end"
     },
     {
-      "id": "status.focus",
-      "name": "Focus",
-      "polarity": "buff",
-      "stack_rule": "intensity",
-      "default_duration": 2,
-      "description": "Improves draw and energy conversion effects."
-    },
-    {
-      "id": "status.burn",
-      "name": "Burn",
+      "id": "status.weaken",
+      "name": "Weaken",
       "polarity": "debuff",
-      "stack_rule": "add",
+      "stack_rule": "replace",
       "default_duration": 2,
-      "description": "Deals delayed damage and can be consumed by fire skills."
+      "description": "Reduces outgoing damage by a percentage.",
+      "effect_type": "weaken",
+      "numeric_value": 25,
+      "tick_timing": "none",
+      "expire_timing": "turn_end"
     },
     {
-      "id": "status.regeneration",
-      "name": "Regeneration",
-      "polarity": "buff",
-      "stack_rule": "add",
-      "default_duration": 2,
-      "description": "Restores health at the start of the affected unit's turn."
+      "id": "status.seal",
+      "name": "Seal",
+      "polarity": "debuff",
+      "stack_rule": "replace",
+      "default_duration": 1,
+      "description": "Prevents the affected side from taking its next action.",
+      "effect_type": "seal",
+      "numeric_value": 0,
+      "tick_timing": "none",
+      "expire_timing": "turn_end"
+    },
+    {
+      "id": "status.heal_block",
+      "name": "Heal Block",
+      "polarity": "debuff",
+      "stack_rule": "replace",
+      "default_duration": 1,
+      "description": "Prevents healing while active.",
+      "effect_type": "heal_block",
+      "numeric_value": 0,
+      "tick_timing": "none",
+      "expire_timing": "turn_end"
     }
   ]
 }

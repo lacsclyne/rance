@@ -41,6 +41,8 @@ logic, or runtime loaders.
   named for the collection, such as `cards`, `characters`, or `reward_pools`.
 - References use explicit `*_id` or `*_ids` fields and must point to IDs in the
   matching fixture collection.
+- Status rows include runtime effect metadata (`effect_type`, `numeric_value`,
+  `tick_timing`, and `expire_timing`) consumed by the first combat resolver.
 - Card `effects`, skill triggers, status stack rules, enemy intents, encounter
   waves, quest objectives, reward pool entries, and progression unlocks are
   declarative descriptors only. Later runtime issues can interpret them without
