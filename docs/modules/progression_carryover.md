@@ -5,10 +5,15 @@
 Own character growth, rewards, unlocks, run completion summaries, and
 new-run carryover contracts.
 
-## Future Code Paths
+## Current Code Paths
 
 - `src/progression/`
 - Future content data under `data/progression/`
+
+Current progression state is stored in `ProgressionState` and serializes into
+the save system's `progression` section. `DiscoveryLog`, `RunHistory`, and
+`CarryoverState` keep first discoveries, quest outcomes, and limited new-run
+inheritance separate from static content tables.
 
 ## Key Scene and Resource Paths
 

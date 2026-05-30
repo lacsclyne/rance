@@ -74,8 +74,9 @@ func start_battle(config: Dictionary):
 	_reset()
 	_load_status_definitions(config)
 
-	max_ap = max(1, int(config.get("max_ap", max_ap)))
-	ap_recovery = max(0, int(config.get("ap_recovery", ap_recovery)))
+	var system_unlocks := _system_unlocks_from_config(config)
+	max_ap = max(1, int(config.get("max_ap", max_ap)) + int(system_unlocks.get("max_ap_bonus", 0)))
+	ap_recovery = max(0, int(config.get("ap_recovery", ap_recovery)) + int(system_unlocks.get("ap_recovery_bonus", 0)))
 	player_ap = _clamp_int(int(config.get("initial_ap", 0)), 0, max_ap)
 
 	player_max_hp = max(1, int(config.get("player_max_hp", config.get("shared_player_hp", 1))))
@@ -324,6 +325,13 @@ func _build_encounter_definition(config: Dictionary):
 	if not enemy_actions.is_empty():
 		return EncounterDefinitionScript.from_enemy_actions(enemy_actions)
 	return EncounterDefinitionScript.default_encounter()
+
+
+func _system_unlocks_from_config(config: Dictionary) -> Dictionary:
+	var unlocks = config.get("system_unlocks", config.get("progression_unlocks", {}))
+	if typeof(unlocks) == TYPE_DICTIONARY:
+		return unlocks
+	return {}
 
 
 func _prepare_enemy_intents() -> void:
