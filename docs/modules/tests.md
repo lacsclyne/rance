@@ -22,6 +22,7 @@ entry points once a test framework is selected.
 godot --headless --path . --script tests/test_combat_minimal.gd
 godot --headless --path . --script tests/test_quest_graph_minimal.gd
 godot --headless --path . --script tests/test_campaign_fronts_minimal.gd
+godot --headless --path . --script tests/test_resource_registry.gd
 ```
 
 ## Interface Boundaries
