@@ -10,6 +10,7 @@
         { "enemy_id": "enemy.bandit_skirmisher", "count": 2 }
       ],
       "reward_pool_id": "reward_pool.prologue",
+      "background_asset_id": "encounter_background.road_ambush",
       "environment": "forest_road",
       "intent_pattern": {
         "rotation": [
@@ -52,6 +53,7 @@
         { "enemy_id": "enemy.ember_acolyte", "count": 1 }
       ],
       "reward_pool_id": "reward_pool.prologue",
+      "background_asset_id": "encounter_background.burned_shrine",
       "environment": "ruined_shrine",
       "intent_pattern": {
         "rotation": [
@@ -92,6 +94,7 @@
         { "enemy_id": "enemy.foundry_overseer", "count": 1 }
       ],
       "reward_pool_id": "reward_pool.foundry",
+      "background_asset_id": "encounter_background.foundry_gate",
       "environment": "outer_foundry",
       "intent_pattern": {
         "rotation": [

@@ -19,6 +19,7 @@
           "id": { "$ref": "#/$defs/contentId" },
           "name": { "type": "string", "minLength": 1 },
           "faction_id": { "$ref": "#/$defs/contentId" },
+          "portrait_asset_id": { "$ref": "#/$defs/assetId" },
           "role": { "type": "string", "minLength": 1 },
           "base_stats": { "$ref": "#/$defs/stats" },
           "starting_deck": {
@@ -38,6 +39,10 @@
   },
   "$defs": {
     "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "assetId": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
     },

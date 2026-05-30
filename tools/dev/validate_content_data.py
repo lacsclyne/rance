@@ -185,17 +185,28 @@ CONTENT_LABELS = {
     "endings": "ending",
 }
 
+ASSET_REFERENCE_FIELDS = {
+    "factions": ("icon_asset_id", "faction_icon"),
+    "cards": ("card_art_asset_id", "card_art"),
+    "skills": ("icon_asset_id", "skill_icon"),
+    "characters": ("portrait_asset_id", "portrait"),
+    "encounters": ("background_asset_id", "encounter_background"),
+}
+
 
 class ContentValidator:
-    def __init__(self, data_root: Path) -> None:
+    def __init__(self, data_root: Path, asset_manifest_path: Path = Path("assets/asset_manifest.json")) -> None:
         self.data_root = data_root
+        self.asset_manifest_path = asset_manifest_path
         self.files: dict[str, Path] = {}
         self.documents: dict[str, dict[str, Any]] = {}
         self.indexes: dict[str, dict[str, dict[str, Any]]] = {
             table["key"]: {} for table in TABLES
         }
+        self.asset_categories: dict[str, str] = {}
         self.errors: list[str] = []
         self._all_ids: dict[str, str] = {}
+        self._asset_manifest_loaded = False
 
     def run(self) -> bool:
         self._load_documents()
@@ -204,6 +215,9 @@ class ContentValidator:
 
         for table in TABLES:
             self._validate_collection_shape(table)
+
+        if self._has_asset_references():
+            self._load_asset_manifest()
 
         self._validate_references()
         return not self.errors
@@ -236,6 +250,51 @@ class ContentValidator:
                 continue
 
             self.documents[table_key] = document
+
+    def _load_asset_manifest(self) -> None:
+        if not self.asset_manifest_path.exists():
+            self._error(self.asset_manifest_path, "<file>", "<file>", "missing asset manifest")
+            return
+
+        try:
+            with self.asset_manifest_path.open("r", encoding="utf-8-sig") as handle:
+                document = json.load(handle)
+        except json.JSONDecodeError as exc:
+            self._error(
+                self.asset_manifest_path,
+                "<json>",
+                "<json>",
+                f"parse error at line {exc.lineno}: {exc.msg}",
+            )
+            return
+        except OSError as exc:
+            self._error(self.asset_manifest_path, "<file>", "<file>", f"could not open file: {exc}")
+            return
+
+        if not isinstance(document, dict):
+            self._error(self.asset_manifest_path, "<file>", "<root>", "expected JSON object")
+            return
+
+        assets = document.get("assets")
+        if not isinstance(assets, list):
+            self._error(self.asset_manifest_path, "<file>", "assets", "missing or invalid assets array")
+            return
+
+        self._asset_manifest_loaded = True
+        for entry in assets:
+            if not isinstance(entry, dict):
+                continue
+            asset_id = entry.get("id")
+            category = entry.get("category")
+            if isinstance(asset_id, str) and isinstance(category, str):
+                self.asset_categories[asset_id] = category
+
+    def _has_asset_references(self) -> bool:
+        for table_key, (field, _expected_category) in ASSET_REFERENCE_FIELDS.items():
+            for row in self._rows(table_key):
+                if field in row:
+                    return True
+        return False
 
     def _validate_collection_shape(self, table: dict[str, str]) -> None:
         table_key = table["key"]
@@ -389,6 +448,10 @@ class ContentValidator:
             self._validate_ending_requirements(row, file_path, row_id)
             self._validate_ending_discovery(row, file_path, row_id)
             self._validate_presentation(row, file_path, row_id, "presentation", ["title", "body"], ["subtitle"])
+
+        if table_key in ASSET_REFERENCE_FIELDS:
+            field, _category = ASSET_REFERENCE_FIELDS[table_key]
+            self._validate_optional_string(row, file_path, row_id, field)
 
     def _validate_card_effects(self, row: dict[str, Any], file_path: Path, row_id: str) -> None:
         effects = self._array_value(row, file_path, row_id, "effects")
@@ -799,6 +862,8 @@ class ContentValidator:
                 self._validate_enum_value(entry["state"], file_path, row_id, f"{entry_field}.state", ENUMS["character_condition_state"])
 
     def _validate_references(self) -> None:
+        self._validate_asset_references()
+
         for row in self._rows("cards"):
             file_path = self.files["cards"]
             row_id = self._row_label(row, 0)
@@ -917,6 +982,14 @@ class ContentValidator:
         for index, entry in enumerate(self._list_or_empty(target, "character_state")):
             if isinstance(entry, dict) and "character_id" in entry:
                 self._validate_ref(entry["character_id"], file_path, row_id, f"{prefix}.character_state[{index}].character_id", "characters")
+
+    def _validate_asset_references(self) -> None:
+        if not self._asset_manifest_loaded:
+            return
+        for table_key, (field, expected_category) in ASSET_REFERENCE_FIELDS.items():
+            file_path = self.files[table_key]
+            for row in self._rows(table_key):
+                self._validate_asset_ref_field(row, file_path, self._row_label(row, 0), field, expected_category)
 
     def _require_fields(
         self,
@@ -1080,6 +1153,30 @@ class ContentValidator:
         if value not in self.indexes[target_key]:
             self._error(file_path, row_id, field, f"unknown {CONTENT_LABELS[target_key]} id '{value}'")
 
+    def _validate_asset_ref_field(
+        self,
+        row: dict[str, Any],
+        file_path: Path,
+        row_id: str,
+        field: str,
+        expected_category: str,
+    ) -> None:
+        if field not in row:
+            return
+        value = row[field]
+        if not isinstance(value, str):
+            return
+        category = self.asset_categories.get(value)
+        if category is None:
+            self._error(file_path, row_id, field, f"unknown asset id '{value}'")
+        elif category != expected_category:
+            self._error(
+                file_path,
+                row_id,
+                field,
+                f"expected asset category '{expected_category}', got '{category}'",
+            )
+
     def _array_value(self, row: dict[str, Any], file_path: Path, row_id: str, field: str) -> list[Any]:
         if field not in row:
             return []
@@ -1190,12 +1287,18 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help="Path to the data directory. Defaults to ./data.",
     )
+    parser.add_argument(
+        "--asset-manifest",
+        default=Path("assets/asset_manifest.json"),
+        type=Path,
+        help="Path to the asset manifest. Defaults to ./assets/asset_manifest.json.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    validator = ContentValidator(args.data_root)
+    validator = ContentValidator(args.data_root, args.asset_manifest)
     ok = validator.run()
 
     if ok:

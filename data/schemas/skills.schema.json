@@ -22,6 +22,7 @@
             "type": "string",
             "enum": ["battle_start", "turn_start", "card_played", "on_damage", "active"]
           },
+          "icon_asset_id": { "$ref": "#/$defs/assetId" },
           "description": { "type": "string", "minLength": 1 },
           "status_ids": {
             "type": "array",
@@ -35,6 +36,10 @@
   },
   "$defs": {
     "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "assetId": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
     }

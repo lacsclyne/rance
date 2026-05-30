@@ -10,6 +10,7 @@
         { "enemy_id": "enemy.template_opponent", "count": 1 }
       ],
       "reward_pool_id": "reward_pool.template_basic",
+      "background_asset_id": "encounter_background.template_intro",
       "environment": "template_environment",
       "intent_pattern": {
         "rotation": [

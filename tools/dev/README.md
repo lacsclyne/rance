@@ -12,7 +12,7 @@ godot --headless --path . --script tools/dev/validate_content_data.gd
 ```
 
 This calls `src/data/content_data_loader.gd` and validates the JSON fixtures in
-`res://data/`.
+`res://data/`, including optional content-to-asset manifest references.
 
 Fallback for workstations or CI runners without a Godot binary:
 
@@ -23,6 +23,9 @@ python tools/dev/validate_content_data.py
 Both commands report failures with file, content ID, field, and reason. Use
 `-- --data-root <path>` with the Godot script or `--data-root <path>` with the
 Python script to validate a copied or generated data directory.
+
+Use `--asset-manifest <path>` when validating against a non-default copy of
+`assets/asset_manifest.json`.
 
 ## Build Export Validation
 
@@ -75,3 +78,15 @@ python tools/dev/content_inventory_report.py --json-output content-inventory.jso
 
 Use `--data-root <path>` to scan another data directory and `--strict` to return
 a non-zero exit code when validation errors are present.
+
+The readable report includes an advisory `MVP Roster Coverage` section. It
+checks the current roster target of 2 factions, 3 characters per faction, and 2
+card versions per character, then groups gaps by faction and character. Missing
+character slots, missing card version slots, duplicate version slots, missing
+design packet links when design packet fields exist, and missing asset
+references are reported as inventory gaps only. They do not change the exit code
+unless content validation itself fails and `--strict` is used.
+
+Roster asset coverage uses `assets/asset_manifest.json` by default. Pass
+`--asset-manifest <path>` when checking a copied data set against a different
+manifest.

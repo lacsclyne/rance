@@ -16,6 +16,7 @@ changing.
 | Project direction | [project-overview.md](project-overview.md) | `project.godot`, `src/`, `scenes/`, `data/`, `resources/`, `assets/` |
 | Godot boot/app config | [modules/boot_config.md](modules/boot_config.md) | `project.godot`, `scenes/boot/`, `src/boot/`, `src/config/`, `resources/config/` |
 | Content data | [modules/data_definitions.md](modules/data_definitions.md) | `data/`, `data/schemas/`, `src/data/`, `resources/data/` |
+| Art briefs and asset intake | [content-authoring/art-intake-workflow.md](content-authoring/art-intake-workflow.md) | `assets/`, `data/`, `src/resource_loading/` |
 | Cards/characters | [modules/cards_characters.md](modules/cards_characters.md) | `src/cards_characters/`, `data/cards/`, `data/characters/`, `resources/cards/`, `resources/characters/` |
 | Combat | [modules/combat.md](modules/combat.md) | `src/combat/`, `data/combat/`, `scenes/combat/`, `resources/combat/` |
 | Quests/events/endings | [modules/quests_events_endings.md](modules/quests_events_endings.md) | `src/quests_events_endings/`, `data/quests/`, `data/events/`, `data/endings/`, `resources/events/`, `resources/endings/` |
@@ -27,6 +28,7 @@ changing.
 | Tools | [modules/dev_tools.md](modules/dev_tools.md) | `tools/`, `tools/dev/`, `tests/fixtures/` |
 | Tests | [modules/tests.md](modules/tests.md) | `tests/`, `tools/dev/` |
 | CI | [modules/tests.md](modules/tests.md) | `.github/`, `tests/`, `tools/dev/` |
+| Design/config/art intake | [content-authoring/intake-workflow.md](content-authoring/intake-workflow.md) | `docs/content-authoring/`, `data/`, `assets/`, `tools/dev/` |
 | Content authoring | [../data/README.md](../data/README.md) | `data/`, `data/schemas/`, `tools/dev/`, `src/data/` |
 
 ## Update Rule

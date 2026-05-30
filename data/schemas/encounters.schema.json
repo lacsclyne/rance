@@ -33,6 +33,7 @@
             }
           },
           "reward_pool_id": { "$ref": "#/$defs/contentId" },
+          "background_asset_id": { "$ref": "#/$defs/assetId" },
           "environment": { "type": "string" },
           "intent_pattern": { "$ref": "#/$defs/intentPattern" }
         }
@@ -41,6 +42,10 @@
   },
   "$defs": {
     "contentId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "assetId": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
     },

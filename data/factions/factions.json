@@ -7,6 +7,7 @@
       "name": "Liberation Front",
       "alignment": "ally",
       "color": "#3B82F6",
+      "icon_asset_id": "faction_icon.liberation_front",
       "summary": "Volunteer defenders who favor flexible decks and protection."
     },
     {
@@ -14,6 +15,7 @@
       "name": "Arcane Union",
       "alignment": "neutral",
       "color": "#8B5CF6",
+      "icon_asset_id": "faction_icon.arcane_union",
       "summary": "Scholars and mages focused on status manipulation and draw."
     },
     {
@@ -21,6 +23,7 @@
       "name": "Iron Court",
       "alignment": "enemy",
       "color": "#B45309",
+      "icon_asset_id": "faction_icon.iron_court",
       "summary": "Militarized raiders using pressure, burn, and attrition."
     }
   ]

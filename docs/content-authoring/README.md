@@ -4,6 +4,10 @@ Use this guide when adding or revising JSON content under `data/`. The starter
 templates in [templates/](templates/) mirror the current data layout and are
 generic placeholders, not final character, story, ending, or balance decisions.
 
+Use [art-intake-workflow.md](art-intake-workflow.md) when a content row needs a
+generated or commissioned card illustration, portrait, icon, background, or UI
+image tracked through the asset manifest.
+
 ## Template Index
 
 | Content type | Data file | Schema | Template |
@@ -28,7 +32,9 @@ generic placeholders, not final character, story, ending, or balance decisions.
 2. Rename every `*.template_*` ID before committing.
 3. Update any reference fields so they point to existing IDs in the matching
    collection.
-4. Run validation:
+4. Fill optional asset reference fields with stable manifest IDs from
+   `assets/asset_manifest.json` when the content expects art.
+5. Run validation:
 
 ```sh
 python tools/dev/validate_content_data.py
@@ -39,6 +45,20 @@ If Godot is installed, the equivalent runtime-facing check is:
 ```sh
 godot --headless --path . --script tools/dev/validate_content_data.gd
 ```
+
+5. Run the advisory inventory report when checking MVP roster completeness:
+
+```sh
+python tools/dev/content_inventory_report.py
+```
+
+Read the `MVP Roster Coverage` section as a planning checklist, not a hard
+content gate. It reports the current target of 2 roster factions, 3 characters
+per faction, and 2 card versions per character, grouped by faction and
+character. Missing character slots, missing card version slots, duplicate
+version slots, design packet link gaps when those fields are present, and asset
+reference gaps can be fixed over multiple content passes without requiring
+final names, final art, or final balance values.
 
 ## ID Rules
 
@@ -129,6 +149,20 @@ Ending rows should use `priority` to order competing endings. Use
 multi-run discovery outputs in `discovery.set_flags` and durable unlock hooks in
 `discovery.carryover_progression_ids`.
 
+## Asset Reference Fields
+
+Asset fields are optional, but when present they must reference an entry in
+`assets/asset_manifest.json` with the matching category. Placeholder manifest
+entries are valid and should be used before final art exists.
+
+| Field | Manifest category |
+| --- | --- |
+| `factions[].icon_asset_id` | `faction_icon` |
+| `characters[].portrait_asset_id` | `portrait` |
+| `cards[].card_art_asset_id` | `card_art` |
+| `skills[].icon_asset_id` | `skill_icon` |
+| `encounters[].background_asset_id` | `encounter_background` |
+
 ## Common Validation Errors
 
 - `missing required field`: the row or nested object lacks a schema-required
@@ -140,6 +174,10 @@ multi-run discovery outputs in `discovery.set_flags` and durable unlock hooks in
 - `duplicate ID`: the same ID appears twice in one collection or elsewhere in
   loaded content.
 - `unknown ... id`: a reference field points at content that does not exist.
+- `unknown asset id`: an asset reference field points at a manifest entry that
+  does not exist.
+- `expected asset category`: an asset reference field points at a manifest entry
+  from the wrong category.
 - `expected one of ...`: an enum field uses a value outside the schema.
 - `must be >= ...`: an integer or number is below the schema minimum.
 - `expected array` or `expected object`: a nested field has the wrong JSON type.

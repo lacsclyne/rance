@@ -48,6 +48,9 @@ For new content authoring, start with the guide and starter templates in
   named for the collection, such as `cards`, `characters`, or `reward_pools`.
 - References use explicit `*_id` or `*_ids` fields and must point to IDs in the
   matching fixture collection.
+- Asset references use explicit `*_asset_id` fields and must point to IDs in
+  `assets/asset_manifest.json` with the expected manifest category. Placeholder
+  manifest entries are valid; content should not reference asset file paths.
 - Status rows include runtime effect metadata (`effect_type`, `numeric_value`,
   `tick_timing`, and `expire_timing`) consumed by the first combat resolver.
 - Card `effects`, skill triggers, status stack rules, enemy notes, encounter
