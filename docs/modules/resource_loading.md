@@ -19,8 +19,13 @@ typed resource handle without knowing the final art path.
 - Future loader resources: `res://resources/loaders/`
 - Static content roots: `res://data/`, `res://resources/`, and `res://assets/`
 - Resource registry script: `res://src/resource_loading/resource_registry.gd`
-- Future asset manifest adapter point:
-  `ResourceRegistry.load_from_asset_manifest()`
+- Asset manifest: `res://assets/asset_manifest.json`
+- Card art: `res://assets/card_art/`
+- Character portraits: `res://assets/portraits/`
+- Faction icons: `res://assets/icons/factions/`
+- Skill icons: `res://assets/icons/skills/`
+- Encounter backgrounds: `res://assets/backgrounds/encounters/`
+- UI imagery: `res://assets/ui/`
 
 ## Registry Contract
 
@@ -38,9 +43,10 @@ Lookup supports exact ID, typed ID, resource type index, and Godot path index.
 The registry does not call `load()` or perform async work yet; cache policy is
 metadata reserved for a future loader service.
 
-No asset manifest exists in this repository yet. When LAC-28 lands a manifest
-schema, wire that schema into `load_from_asset_manifest()` instead of adding a
-second manifest format here.
+`load_from_asset_manifest()` reads the LAC-28 manifest schema from
+`assets/asset_manifest.json`, converts repository-relative asset paths into
+`res://` paths, and stores manifest fields such as category, status, required,
+and source ID as metadata. It does not define a second manifest format.
 
 ## Interface Boundaries
 
@@ -50,6 +56,8 @@ second manifest format here.
 - Modules should avoid direct ad hoc file parsing when a loader contract exists.
 - Gameplay modules should depend on stable IDs and expected resource types, not
   on final `res://assets/` or `res://resources/` paths.
+- Missing placeholder art is valid until the manifest entry is marked
+  `required: true`.
 
 ## First Reads for Follow-up Issues
 
@@ -57,4 +65,5 @@ second manifest format here.
 - `docs/modules/data_definitions.md`
 - `resources/README.md`
 - `assets/README.md`
+- `assets/asset_manifest.json`
 - `src/resource_loading/README.md`

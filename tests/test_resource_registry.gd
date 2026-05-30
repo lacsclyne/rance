@@ -10,7 +10,7 @@ func _init() -> void:
 	_test_duplicate_ids_do_not_overwrite()
 	_test_missing_ids_are_empty()
 	_test_optional_placeholder_paths()
-	_test_manifest_adapter_waits_for_schema()
+	_test_manifest_adapter_loads_lac28_schema()
 	_finish()
 
 
@@ -107,13 +107,20 @@ func _test_optional_placeholder_paths() -> void:
 	)
 
 
-func _test_manifest_adapter_waits_for_schema() -> void:
+func _test_manifest_adapter_loads_lac28_schema() -> void:
 	var registry = ResourceRegistryScript.new()
 	var result: Dictionary = registry.load_from_asset_manifest("res://assets/asset_manifest.json")
 
-	_expect(result["ok"], "missing manifest is not an error for the in-memory registry")
-	_expect(not result["manifest_found"], "manifest adapter reports that no manifest was found")
-	_expect(result["loaded"] == 0, "missing manifest loads no registry entries")
+	_expect(result["ok"], "asset manifest loads into the registry")
+	_expect(result["manifest_found"], "manifest adapter reports that a manifest was found")
+	_expect(result["loaded"] > 0, "manifest loads registry entries")
+	_expect(
+		registry.get_path("portrait.iris", ResourceRegistryScript.TYPE_TEXTURE) == "res://assets/portraits/iris.png",
+		"manifest paths are exposed as Godot res paths"
+	)
+	var entry := registry.get_entry("portrait.iris")
+	_expect(entry.get("metadata", {}).get("category", "") == "portrait", "manifest category metadata is retained")
+	_expect(entry.get("metadata", {}).get("status", "") == "placeholder", "manifest status metadata is retained")
 
 
 func _expect(condition: bool, message: String) -> void:

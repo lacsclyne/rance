@@ -9,6 +9,15 @@ const TYPE_SCENE := "scene"
 const TYPE_RESOURCE := "resource"
 const TYPE_DATA := "data"
 
+const MANIFEST_CATEGORY_TYPES := {
+	"card_art": TYPE_TEXTURE,
+	"portrait": TYPE_TEXTURE,
+	"faction_icon": TYPE_TEXTURE,
+	"skill_icon": TYPE_TEXTURE,
+	"encounter_background": TYPE_TEXTURE,
+	"ui": TYPE_TEXTURE
+}
+
 const CACHE_POLICY_ON_DEMAND := "on_demand"
 const CACHE_POLICY_REUSE := "reuse"
 const CACHE_POLICY_KEEP_RESIDENT := "keep_resident"
@@ -50,6 +59,13 @@ func register_resource(
 	if not CACHE_POLICIES.has(cache_policy):
 		errors.append("cache_policy must be one of %s" % [CACHE_POLICIES])
 
+	var metadata := {}
+	if options.has("metadata"):
+		if typeof(options["metadata"]) != TYPE_DICTIONARY:
+			errors.append("metadata must be a dictionary")
+		else:
+			metadata = options["metadata"].duplicate(true)
+
 	if not errors.is_empty():
 		return {
 			"ok": false,
@@ -62,7 +78,8 @@ func register_resource(
 		"resource_type": resource_type,
 		"godot_path": godot_path,
 		"placeholder_path": placeholder_path,
-		"cache_policy": cache_policy
+		"cache_policy": cache_policy,
+		"metadata": metadata
 	}
 	_entries_by_id[resource_id] = entry
 	_add_id_to_index(_ids_by_type, resource_type, resource_id)
@@ -153,13 +170,88 @@ func load_from_asset_manifest(manifest_path: String = DEFAULT_ASSET_MANIFEST_PAT
 			"errors": []
 		}
 
+	var file := FileAccess.open(manifest_path, FileAccess.READ)
+	if file == null:
+		return {
+			"ok": false,
+			"manifest_found": true,
+			"loaded": 0,
+			"errors": ["could not open %s, error %s" % [manifest_path, FileAccess.get_open_error()]]
+		}
+
+	var json := JSON.new()
+	var parse_error := json.parse(file.get_as_text())
+	if parse_error != OK:
+		return {
+			"ok": false,
+			"manifest_found": true,
+			"loaded": 0,
+			"errors": [
+				"parse error in %s at line %s: %s" % [
+					manifest_path,
+					json.get_error_line(),
+					json.get_error_message()
+				]
+			]
+		}
+
+	if typeof(json.data) != TYPE_DICTIONARY:
+		return {
+			"ok": false,
+			"manifest_found": true,
+			"loaded": 0,
+			"errors": ["asset manifest root must be a dictionary"]
+		}
+
+	var document: Dictionary = json.data
+	if typeof(document.get("assets")) != TYPE_ARRAY:
+		return {
+			"ok": false,
+			"manifest_found": true,
+			"loaded": 0,
+			"errors": ["asset manifest must contain an assets array"]
+		}
+
+	var errors := []
+	var loaded := 0
+	var assets: Array = document["assets"]
+	for index in range(assets.size()):
+		var entry = assets[index]
+		if typeof(entry) != TYPE_DICTIONARY:
+			errors.append("assets[%s] must be a dictionary" % index)
+			continue
+
+		var asset_id := str(entry.get("id", ""))
+		var category := str(entry.get("category", ""))
+		var asset_path := str(entry.get("path", ""))
+		var metadata := {
+			"category": category,
+			"status": str(entry.get("status", "")),
+			"required": bool(entry.get("required", false))
+		}
+		if entry.has("source_id"):
+			metadata["source_id"] = str(entry["source_id"])
+
+		var registration := register_resource(
+			asset_id,
+			_manifest_resource_type(category),
+			_to_godot_path(asset_path),
+			{
+				"cache_policy": CACHE_POLICY_ON_DEMAND,
+				"metadata": metadata
+			}
+		)
+		if registration["ok"]:
+			loaded += 1
+		else:
+			for error in registration["errors"]:
+				errors.append("%s: %s" % [asset_id, error])
+
 	return {
-		"ok": false,
+		"ok": errors.is_empty(),
 		"manifest_found": true,
-		"loaded": 0,
-		"errors": [
-			"asset manifest adapter must be wired to the LAC-28 schema before loading %s" % manifest_path
-		]
+		"loaded": loaded,
+		"errors": errors
 	}
 
 
@@ -188,3 +280,15 @@ func _validate_godot_path(path: String, field: String, errors: Array) -> void:
 		return
 	if not path.begins_with("res://"):
 		errors.append("%s must begin with res://" % field)
+
+
+func _manifest_resource_type(category: String) -> String:
+	return MANIFEST_CATEGORY_TYPES.get(category, TYPE_RESOURCE)
+
+
+func _to_godot_path(path: String) -> String:
+	if path.is_empty():
+		return ""
+	if path.begins_with("res://"):
+		return path
+	return "res://%s" % path

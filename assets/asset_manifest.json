@@ -1,0 +1,274 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "card_art.strike",
+      "category": "card_art",
+      "path": "assets/card_art/strike.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.strike"
+    },
+    {
+      "id": "card_art.guard",
+      "category": "card_art",
+      "path": "assets/card_art/guard.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.guard"
+    },
+    {
+      "id": "card_art.spark_bolt",
+      "category": "card_art",
+      "path": "assets/card_art/spark_bolt.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.spark_bolt"
+    },
+    {
+      "id": "card_art.first_aid",
+      "category": "card_art",
+      "path": "assets/card_art/first_aid.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.first_aid"
+    },
+    {
+      "id": "card_art.rally_banner",
+      "category": "card_art",
+      "path": "assets/card_art/rally_banner.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.rally_banner"
+    },
+    {
+      "id": "card_art.riposte",
+      "category": "card_art",
+      "path": "assets/card_art/riposte.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.riposte"
+    },
+    {
+      "id": "card_art.frost_lance",
+      "category": "card_art",
+      "path": "assets/card_art/frost_lance.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.frost_lance"
+    },
+    {
+      "id": "card_art.sunder",
+      "category": "card_art",
+      "path": "assets/card_art/sunder.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.sunder"
+    },
+    {
+      "id": "card_art.focus",
+      "category": "card_art",
+      "path": "assets/card_art/focus.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.focus"
+    },
+    {
+      "id": "card_art.quick_step",
+      "category": "card_art",
+      "path": "assets/card_art/quick_step.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "card.quick_step"
+    },
+    {
+      "id": "portrait.iris",
+      "category": "portrait",
+      "path": "assets/portraits/iris.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "character.iris"
+    },
+    {
+      "id": "portrait.toma",
+      "category": "portrait",
+      "path": "assets/portraits/toma.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "character.toma"
+    },
+    {
+      "id": "portrait.maelle",
+      "category": "portrait",
+      "path": "assets/portraits/maelle.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "character.maelle"
+    },
+    {
+      "id": "portrait.ren",
+      "category": "portrait",
+      "path": "assets/portraits/ren.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "character.ren"
+    },
+    {
+      "id": "portrait.bram",
+      "category": "portrait",
+      "path": "assets/portraits/bram.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "character.bram"
+    },
+    {
+      "id": "faction_icon.liberation_front",
+      "category": "faction_icon",
+      "path": "assets/icons/factions/liberation_front.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "faction.liberation_front"
+    },
+    {
+      "id": "faction_icon.arcane_union",
+      "category": "faction_icon",
+      "path": "assets/icons/factions/arcane_union.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "faction.arcane_union"
+    },
+    {
+      "id": "faction_icon.iron_court",
+      "category": "faction_icon",
+      "path": "assets/icons/factions/iron_court.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "faction.iron_court"
+    },
+    {
+      "id": "skill_icon.duelist_training",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/duelist_training.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.duelist_training"
+    },
+    {
+      "id": "skill_icon.field_medicine",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/field_medicine.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.field_medicine"
+    },
+    {
+      "id": "skill_icon.arcane_study",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/arcane_study.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.arcane_study"
+    },
+    {
+      "id": "skill_icon.shield_wall",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/shield_wall.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.shield_wall"
+    },
+    {
+      "id": "skill_icon.battle_rhythm",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/battle_rhythm.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.battle_rhythm"
+    },
+    {
+      "id": "skill_icon.surge_control",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/surge_control.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.surge_control"
+    },
+    {
+      "id": "skill_icon.steady_breath",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/steady_breath.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.steady_breath"
+    },
+    {
+      "id": "skill_icon.evasive_footwork",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/evasive_footwork.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.evasive_footwork"
+    },
+    {
+      "id": "skill_icon.command_aura",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/command_aura.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.command_aura"
+    },
+    {
+      "id": "skill_icon.cursebreaker",
+      "category": "skill_icon",
+      "path": "assets/icons/skills/cursebreaker.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "skill.cursebreaker"
+    },
+    {
+      "id": "encounter_background.road_ambush",
+      "category": "encounter_background",
+      "path": "assets/backgrounds/encounters/road_ambush.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "encounter.road_ambush"
+    },
+    {
+      "id": "encounter_background.burned_shrine",
+      "category": "encounter_background",
+      "path": "assets/backgrounds/encounters/burned_shrine.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "encounter.burned_shrine"
+    },
+    {
+      "id": "encounter_background.foundry_gate",
+      "category": "encounter_background",
+      "path": "assets/backgrounds/encounters/foundry_gate.png",
+      "required": false,
+      "status": "placeholder",
+      "source_id": "encounter.foundry_gate"
+    },
+    {
+      "id": "ui.title_logo",
+      "category": "ui",
+      "path": "assets/ui/title_logo.png",
+      "required": false,
+      "status": "placeholder"
+    },
+    {
+      "id": "ui.card_frame",
+      "category": "ui",
+      "path": "assets/ui/card_frame.png",
+      "required": false,
+      "status": "placeholder"
+    },
+    {
+      "id": "ui.combat_panel",
+      "category": "ui",
+      "path": "assets/ui/combat_panel.png",
+      "required": false,
+      "status": "placeholder"
+    }
+  ]
+}

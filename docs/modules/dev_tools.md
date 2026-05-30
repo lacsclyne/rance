@@ -38,6 +38,8 @@ and local validation commands.
   `godot --headless --path . --script tools/dev/validate_content_data.gd`
 - Validate content fixtures without Godot:
   `python tools/dev/validate_content_data.py`
+- Validate the placeholder-safe asset manifest:
+  `python tools/dev/validate_asset_manifest.py`
 - Report content inventory counts, summaries, placeholder strings, and
   validation-derived missing references:
   `python tools/dev/content_inventory_report.py`

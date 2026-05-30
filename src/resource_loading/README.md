@@ -10,9 +10,9 @@ here. See `docs/modules/resource_loading.md`.
 
 ## Manifest Adapter Point
 
-No asset manifest schema is defined in this module. If the LAC-28 manifest
-exists, adapt it inside `ResourceRegistry.load_from_asset_manifest()` rather
-than creating another manifest format.
+`ResourceRegistry.load_from_asset_manifest()` reads the LAC-28 manifest at
+`res://assets/asset_manifest.json`. It converts repository-relative manifest
+paths into Godot `res://` paths and stores manifest-only fields as metadata.
 
 The registry stores cache policy placeholders but does not load resources or
-start async work.
+start async work. Do not add another manifest format in this module.
